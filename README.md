@@ -196,6 +196,22 @@ There is **no hardcoded or mock user data required**. You can test the complete 
 
 ---
 
+## 🌐 100% Free Cloud Deployment
+
+You can deploy the complete application completely for **free** without any paid subscriptions:
+
+| Layer | Recommended Free Platform | Setup Guide |
+| :--- | :--- | :--- |
+| **PostgreSQL Database** | **[Neon.tech](https://neon.tech)** (0.5 GB Free Serverless Postgres) | [Neon Setup](doc/DEPLOYMENT.md#1-step-1-deploy-postgresql-database-neontech---2-mins) |
+| **Web Dashboard (Next.js)** | **[Vercel](https://vercel.com)** (Unlimited hobby hosting) | [Vercel Setup](doc/DEPLOYMENT.md#3-step-3-deploy-web-dashboard-vercel) |
+| **Backend API (Node.js)** | **[Render.com](https://render.com)** (750 free web service hours/mo) | [Render Setup](doc/DEPLOYMENT.md#2-step-2-deploy-backend-server-rendercom) |
+| **Mobile App (Android/iOS)** | **[Expo EAS](https://expo.dev)** (Free cloud `.apk` builds) | [Expo EAS Setup](doc/DEPLOYMENT.md#4-step-4-build--preview-mobile-app-expo-eas) |
+
+> 📖 **Read the full step-by-step instructions in [doc/DEPLOYMENT.md](doc/DEPLOYMENT.md).**
+
+---
+
 ## 📄 License
 Private & Proprietary — Home Asset Manager v1.0.
+
 

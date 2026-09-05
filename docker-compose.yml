@@ -1,0 +1,51 @@
+services:
+  # PostgreSQL Database Service (Port 5435)
+  postgres:
+    image: postgres:16-alpine
+    container_name: home-assets-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-home_assets}
+    ports:
+      - '${POSTGRES_PORT:-5435}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache & Background Queue Service (Port 6382)
+  redis:
+    image: redis:7-alpine
+    container_name: home-assets-redis
+    restart: always
+    ports:
+      - '${REDIS_PORT:-6382}:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Web UI Database Browser (Port 8090)
+  adminer:
+    image: adminer:latest
+    container_name: home-assets-adminer
+    restart: always
+    ports:
+      - '${ADMINER_PORT:-8090}:8080'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

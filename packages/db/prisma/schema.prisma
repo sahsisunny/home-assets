@@ -1,0 +1,216 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum HouseholdRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum DocumentType {
+  INVOICE
+  WARRANTY
+  MANUAL
+  INSURANCE
+  SERVICE
+  BOX_IMAGE
+  OTHER
+}
+
+enum MaintenanceType {
+  SCHEDULED_SERVICE
+  CLEANING
+  FILTER_REPLACEMENT
+  INSPECTION
+  REPAIR
+  PART_REPLACEMENT
+  OTHER
+}
+
+enum ReminderStatus {
+  PENDING
+  COMPLETED
+  SNOOZED
+}
+
+enum ReminderType {
+  WARRANTY_EXPIRY
+  MAINTENANCE_DUE
+  DOCUMENT_MISSING
+  CUSTOM
+}
+
+model User {
+  id           String            @id @default(uuid())
+  email        String            @unique
+  phone        String?           @unique
+  passwordHash String?
+  fullName     String
+  avatarUrl    String?
+  households   HouseholdMember[]
+  documents    Document[]
+  records      MaintenanceRecord[]
+  notifications Notification[]
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
+
+model Household {
+  id        String            @id @default(uuid())
+  name      String
+  members   HouseholdMember[]
+  assets    Asset[]
+  reminders Reminder[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+model HouseholdMember {
+  id          String        @id @default(uuid())
+  householdId String
+  userId      String
+  role        HouseholdRole @default(MEMBER)
+  household   Household     @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime      @default(now())
+
+  @@unique([householdId, userId])
+}
+
+model AssetCategory {
+  id     String  @id
+  name   String
+  icon   String?
+  assets Asset[]
+}
+
+model Asset {
+  id             String                @id @default(uuid())
+  householdId    String
+  name           String
+  categoryId     String
+  brand          String?
+  model          String?
+  serialNumber   String?
+  purchaseDate   DateTime?
+  purchasePrice  Float?
+  currentValue   Float?
+  seller         String?
+  location       String?
+  owner          String?
+  imageUrl       String?
+  notes          String?
+  
+  household      Household             @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  category       AssetCategory         @relation(fields: [categoryId], references: [id])
+  documents      Document[]
+  warranty       Warranty?
+  schedules      MaintenanceSchedule[]
+  records        MaintenanceRecord[]
+  reminders      Reminder[]
+  
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+}
+
+model Document {
+  id            String         @id @default(uuid())
+  assetId       String
+  type          DocumentType   @default(INVOICE)
+  name          String
+  fileUrl       String
+  mimeType      String
+  fileSizeBytes Int
+  uploadedById  String?
+  
+  asset         Asset          @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  uploadedBy    User?          @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  warranties    Warranty[]
+  records       MaintenanceRecord[]
+  
+  createdAt     DateTime       @default(now())
+}
+
+model Warranty {
+  id             String    @id @default(uuid())
+  assetId        String    @unique
+  provider       String
+  warrantyNumber String?
+  startDate      DateTime
+  endDate        DateTime
+  documentId     String?
+  
+  asset          Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  document       Document? @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model MaintenanceSchedule {
+  id                 String    @id @default(uuid())
+  assetId            String
+  title              String
+  frequencyMonths    Int
+  nextDueDate        DateTime
+  lastCompletedDate  DateTime?
+  enabled            Boolean   @default(true)
+  
+  asset              Asset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+model MaintenanceRecord {
+  id              String          @id @default(uuid())
+  assetId         String
+  type            MaintenanceType @default(SCHEDULED_SERVICE)
+  title           String
+  description     String?
+  cost            Float?
+  serviceProvider String?
+  serviceDate     DateTime
+  nextServiceDate DateTime?
+  documentId      String?
+  createdById     String?
+  
+  asset           Asset           @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  document        Document?       @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  createdBy       User?           @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  
+  createdAt       DateTime        @default(now())
+}
+
+model Reminder {
+  id          String         @id @default(uuid())
+  householdId String
+  assetId     String?
+  title       String
+  dueDate     DateTime
+  type        ReminderType   @default(CUSTOM)
+  status      ReminderStatus @default(PENDING)
+  
+  household   Household      @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  asset       Asset?         @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      String
+  read      Boolean  @default(false)
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}

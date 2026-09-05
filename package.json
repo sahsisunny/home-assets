@@ -1,0 +1,36 @@
+{
+  "name": "home-asset-manager-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Home Asset Manager - Personal digital system for managing household assets, warranties, documents, and maintenance",
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:mobile": "pnpm --filter @home-assets/mobile dev",
+    "dev:mobile:android": "pnpm --filter @home-assets/mobile android",
+    "dev:mobile:web": "pnpm --filter @home-assets/mobile web",
+    "dev:web": "pnpm --filter @home-assets/web dev",
+    "dev:server": "pnpm --filter @home-assets/server dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "db:generate": "turbo run db:generate",
+    "db:push": "turbo run db:push",
+    "db:seed": "pnpm --filter @home-assets/db db:seed",
+    "db:studio": "pnpm --filter @home-assets/db db:studio",
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "tsx": "^4.16.2",
+    "turbo": "^2.1.1",
+    "typescript": "^5.5.4"
+  },
+  "packageManager": "pnpm@8.15.6",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

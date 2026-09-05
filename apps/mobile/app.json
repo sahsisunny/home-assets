@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Home Asset Manager",
+    "slug": "home-asset-manager",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#5C4EBA"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.homeassets.app"
+    },
+    "android": {
+      "package": "com.homeassets.app",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
+    }
+  }
+}

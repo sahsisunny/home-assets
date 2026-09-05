@@ -156,17 +156,6 @@ export default function WebDashboardPage() {
     }
   };
 
-  const handleLoadSampleAssets = async () => {
-    try {
-      const res = await fetch(buildApiUrl('/assets/load-sample'), { method: 'POST' });
-      if (res.ok) {
-        await loadData();
-        showToast('Sample asset fixtures loaded!');
-      }
-    } catch (err) {
-      console.error('Failed to load sample assets:', err);
-    }
-  };
 
   const handleResetAssets = async () => {
     if (confirm('Clear all assets and start with a completely empty portfolio?')) {
@@ -927,28 +916,6 @@ export default function WebDashboardPage() {
                   <Users size={14} color="#5C4EBA" /> Household & Family
                 </button>
 
-                <button
-                  onClick={() => {
-                    handleLoadSampleAssets();
-                    setIsUserMenuOpen(false);
-                  }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '8px 10px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    backgroundColor: 'transparent',
-                    color: '#334155',
-                    fontSize: '13px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                  }}
-                >
-                  <Sparkles size={14} color="#D97706" /> Load Demo Fixtures
-                </button>
 
                 <button
                   onClick={() => {

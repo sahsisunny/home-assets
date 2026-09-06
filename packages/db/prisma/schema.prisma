@@ -127,6 +127,7 @@ model Document {
   fileUrl       String
   mimeType      String
   fileSizeBytes Int
+  fileData      String?
   uploadedById  String?
   
   asset         Asset          @relation(fields: [assetId], references: [id], onDelete: Cascade)

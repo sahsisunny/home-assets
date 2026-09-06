@@ -37,6 +37,18 @@ export const CreateAssetSchema = z.object({
     })
     .or(z.string())
     .optional(),
+  // Initial Attached Invoice / Document during asset creation
+  invoice: z
+    .object({
+      name: z.string().optional(),
+      fileName: z.string().optional(),
+      fileData: z.string().optional(),
+      mimeType: z.string().optional(),
+      fileSizeBytes: z.number().optional(),
+      fileUrl: z.string().optional(),
+      notes: z.string().optional(),
+    })
+    .optional(),
 });
 
 export const UpdateAssetSchema = CreateAssetSchema.partial();

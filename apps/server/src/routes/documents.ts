@@ -17,6 +17,9 @@ function mapDocType(type?: string): DocumentType {
 }
 
 function formatDocumentResponse(doc: any) {
+  const isCustomUrl = doc.fileUrl && !doc.fileUrl.includes('placehold.co') && !doc.fileUrl.includes('example.com');
+  const fileUrl = isCustomUrl ? doc.fileUrl : `/api/documents/${doc.id}/file`;
+
   return {
     id: doc.id,
     assetId: doc.assetId,
@@ -28,7 +31,8 @@ function formatDocumentResponse(doc: any) {
     sizeFormatted: doc.fileSizeBytes ? `${Math.round(doc.fileSizeBytes / 1024)} KB` : '',
     fileSizeBytes: doc.fileSizeBytes,
     mimeType: doc.mimeType,
-    fileUrl: doc.fileUrl,
+    fileUrl,
+    hasFileContent: Boolean(doc.fileData),
     createdAt: doc.createdAt.toISOString(),
   };
 }
@@ -53,7 +57,17 @@ documentsRouter.get('/', async (req, res) => {
 
     const docs = await prisma.document.findMany({
       where: whereClause,
-      include: {
+      select: {
+        id: true,
+        assetId: true,
+        type: true,
+        name: true,
+        fileUrl: true,
+        mimeType: true,
+        fileSizeBytes: true,
+        fileData: false, // Omit heavy base64 from list for maximum performance
+        uploadedById: true,
+        createdAt: true,
         asset: {
           select: { id: true, name: true },
         },
@@ -69,10 +83,75 @@ documentsRouter.get('/', async (req, res) => {
   }
 });
 
-// POST /api/documents (Create Document)
+// GET /api/documents/:id/file (View Document Inline)
+documentsRouter.get('/:id/file', async (req, res) => {
+  try {
+    const doc = await prisma.document.findUnique({
+      where: { id: req.params.id },
+    });
+
+    if (!doc) {
+      return res.status(404).json({ success: false, error: 'Document not found' });
+    }
+
+    if (!doc.fileData) {
+      if (doc.fileUrl && (doc.fileUrl.startsWith('http://') || doc.fileUrl.startsWith('https://'))) {
+        return res.redirect(doc.fileUrl);
+      }
+      return res.status(404).json({ success: false, error: 'No raw file content stored for this document' });
+    }
+
+    const base64Content = doc.fileData.includes(',') ? doc.fileData.split(',')[1] : doc.fileData;
+    const fileBuffer = Buffer.from(base64Content, 'base64');
+    const safeFilename = encodeURIComponent(doc.name || 'document');
+
+    res.setHeader('Content-Type', doc.mimeType || 'application/octet-stream');
+    res.setHeader('Content-Length', fileBuffer.length);
+    res.setHeader('Content-Disposition', `inline; filename="${safeFilename}"`);
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    return res.send(fileBuffer);
+  } catch (err: any) {
+    logger.error('Failed to stream document file', err, { id: req.params.id }, 'PostgreSQL Documents');
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/documents/:id/download (Download Document Attachment)
+documentsRouter.get('/:id/download', async (req, res) => {
+  try {
+    const doc = await prisma.document.findUnique({
+      where: { id: req.params.id },
+    });
+
+    if (!doc) {
+      return res.status(404).json({ success: false, error: 'Document not found' });
+    }
+
+    if (!doc.fileData) {
+      if (doc.fileUrl && (doc.fileUrl.startsWith('http://') || doc.fileUrl.startsWith('https://'))) {
+        return res.redirect(doc.fileUrl);
+      }
+      return res.status(404).json({ success: false, error: 'No raw file content stored for this document' });
+    }
+
+    const base64Content = doc.fileData.includes(',') ? doc.fileData.split(',')[1] : doc.fileData;
+    const fileBuffer = Buffer.from(base64Content, 'base64');
+    const safeFilename = encodeURIComponent(doc.name || 'document');
+
+    res.setHeader('Content-Type', doc.mimeType || 'application/octet-stream');
+    res.setHeader('Content-Length', fileBuffer.length);
+    res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
+    return res.send(fileBuffer);
+  } catch (err: any) {
+    logger.error('Failed to download document file', err, { id: req.params.id }, 'PostgreSQL Documents');
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/documents (Create Document with Actual File Data)
 documentsRouter.post('/', async (req, res) => {
   try {
-    const { assetId, type, name, fileName, fileUrl, fileSizeBytes, mimeType } = req.body;
+    const { assetId, type, name, fileName, fileUrl, fileData, fileSizeBytes, mimeType } = req.body;
     const userSession = await getActiveUser(req.headers.authorization);
 
     if (!assetId) {
@@ -90,14 +169,24 @@ documentsRouter.post('/', async (req, res) => {
     const docName = name || fileName || 'Document';
     const docType = mapDocType(type);
 
+    let calculatedSize = fileSizeBytes ? Number(fileSizeBytes) : 0;
+    if (!calculatedSize && fileData) {
+      const pureBase64 = fileData.includes(',') ? fileData.split(',')[1] : fileData;
+      calculatedSize = Math.round((pureBase64.length * 3) / 4);
+    }
+    if (!calculatedSize) calculatedSize = 102400;
+
+    const detectedMime = mimeType || (fileData?.startsWith('data:image/') ? fileData.substring(5, fileData.indexOf(';')) : 'application/pdf');
+
     const doc = await prisma.document.create({
       data: {
         assetId,
         type: docType,
         name: docName,
-        fileUrl: fileUrl || 'https://placehold.co/600x800.png',
-        mimeType: mimeType || 'application/pdf',
-        fileSizeBytes: fileSizeBytes ? Number(fileSizeBytes) : 102400,
+        fileUrl: fileUrl || `/api/documents/temp/file`,
+        fileData: fileData || null,
+        mimeType: detectedMime,
+        fileSizeBytes: calculatedSize,
         uploadedById: userSession?.user.id || null,
       },
       include: {
@@ -107,11 +196,21 @@ documentsRouter.post('/', async (req, res) => {
       },
     });
 
-    logger.info(`Document created in PostgreSQL: ${doc.name} (${doc.id}) for ${asset.name}`, {
+    // Update fileUrl with permanent document ID endpoint if default
+    if (!fileUrl) {
+      await prisma.document.update({
+        where: { id: doc.id },
+        data: { fileUrl: `/api/documents/${doc.id}/file` },
+      });
+      doc.fileUrl = `/api/documents/${doc.id}/file`;
+    }
+
+    logger.info(`Document stored in PostgreSQL: ${doc.name} (${doc.id}) for ${asset.name} (hasData: ${Boolean(fileData)}, ${Math.round(calculatedSize / 1024)} KB)`, {
       id: doc.id,
       name: doc.name,
       type: doc.type,
       assetId: doc.assetId,
+      hasFileData: Boolean(fileData),
     }, 'PostgreSQL Documents');
 
     return res.status(201).json({ success: true, data: formatDocumentResponse(doc) });
@@ -147,13 +246,15 @@ documentsRouter.get('/:id', async (req, res) => {
 documentsRouter.patch('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, type } = req.body;
+    const { name, type, fileData, mimeType } = req.body;
 
     const doc = await prisma.document.update({
       where: { id },
       data: {
         name: name !== undefined ? name : undefined,
         type: type !== undefined ? mapDocType(type) : undefined,
+        fileData: fileData !== undefined ? fileData : undefined,
+        mimeType: mimeType !== undefined ? mimeType : undefined,
       },
       include: {
         asset: {

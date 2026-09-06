@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { API_ENDPOINTS, buildApiUrl } from '@home-assets/tokens';
 import {
   Receipt,
   ShieldCheck,
@@ -9,7 +10,8 @@ import {
   Trash2,
   X,
   Download,
-  Image,
+  ExternalLink,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 interface ViewDocumentModalProps {
@@ -31,6 +33,13 @@ export const ViewDocumentModal: React.FC<ViewDocumentModalProps> = ({
 
   const isInvoice = doc.type === 'invoice';
   const isWarranty = doc.type === 'warranty';
+  const isImage = doc.mimeType?.startsWith('image/') || doc.fileName?.match(/\.(jpg|jpeg|png|webp|gif)$/i);
+
+  const fileUrl = doc.fileUrl && !doc.fileUrl.includes('example.com') && !doc.fileUrl.includes('placehold.co')
+    ? (doc.fileUrl.startsWith('http') ? doc.fileUrl : buildApiUrl(doc.fileUrl))
+    : buildApiUrl(API_ENDPOINTS.DOCUMENTS.FILE(doc.id));
+
+  const downloadUrl = buildApiUrl(API_ENDPOINTS.DOCUMENTS.DOWNLOAD(doc.id));
 
   return (
     <div
@@ -163,29 +172,38 @@ export const ViewDocumentModal: React.FC<ViewDocumentModalProps> = ({
             style={{
               border: '2px dashed #CBD5E1',
               borderRadius: '16px',
-              padding: '24px',
+              padding: '20px',
               textAlign: 'center',
               backgroundColor: '#F8F9FD',
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>
-              {doc.fileName?.endsWith('.pdf') ? <FileText size={42} color="#5C4EBA" /> : <Image size={42} color="#5C4EBA" />}
+              {isImage ? <ImageIcon size={38} color="#5C4EBA" /> : <FileText size={38} color="#5C4EBA" />}
             </div>
-            <h4 style={{ fontSize: '15px', fontWeight: '800', color: '#1E293B' }}>{doc.fileName || 'document.pdf'}</h4>
+            <h4 style={{ fontSize: '15px', fontWeight: '800', color: '#1E293B' }}>{doc.fileName || doc.name || 'document.pdf'}</h4>
             <p style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>
-              {doc.sizeFormatted || '1.2 MB'} • {doc.mimeType || 'application/pdf'} • Uploaded {doc.date || 'Recently'}
+              {doc.sizeFormatted || 'Document File'} • {doc.mimeType || 'application/pdf'} • Uploaded {doc.date || 'Recently'}
             </p>
-            <div style={{ marginTop: '16px' }}>
+
+            {/* Live Image Preview if Image Document */}
+            {isImage && (
+              <div style={{ marginTop: '14px', maxHeight: '180px', overflow: 'hidden', borderRadius: '10px', border: '1px solid #E2E8F0', display: 'flex', justifyContent: 'center', backgroundColor: '#FFFFFF' }}>
+                <img
+                  src={fileUrl}
+                  alt={doc.name}
+                  style={{ maxHeight: '180px', maxWidth: '100%', objectFit: 'contain' }}
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+
+            <div style={{ marginTop: '16px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
               <a
-                href={doc.fileUrl || '#'}
+                href={fileUrl}
                 target="_blank"
                 rel="noreferrer"
-                onClick={(e) => {
-                  if (!doc.fileUrl || doc.fileUrl.includes('example.com')) {
-                    e.preventDefault();
-                    alert(`Simulating viewing/downloading ${doc.fileName} (${doc.name})`);
-                  }
-                }}
                 style={{
                   backgroundColor: '#5C4EBA',
                   color: '#FFFFFF',
@@ -199,7 +217,27 @@ export const ViewDocumentModal: React.FC<ViewDocumentModalProps> = ({
                   gap: '6px',
                 }}
               >
-                <Download size={14} /> Download / Open File
+                <ExternalLink size={14} /> Open / View File
+              </a>
+              <a
+                href={downloadUrl}
+                download={doc.fileName || doc.name}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  backgroundColor: '#EEF0FF',
+                  color: '#5C4EBA',
+                  padding: '9px 18px',
+                  borderRadius: '10px',
+                  fontWeight: '700',
+                  fontSize: '13px',
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <Download size={14} /> Download
               </a>
             </div>
           </div>

@@ -42,7 +42,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({ isOpen, onClose, o
   const [warrantyMonths, setWarrantyMonths] = useState('12');
   const [notes, setNotes] = useState('');
 
-  const [invoiceFile, setInvoiceFile] = useState<{ fileName: string; fileSizeBytes?: number; mimeType?: string; fileUrl?: string } | null>(null);
+  const [invoiceFile, setInvoiceFile] = useState<{ fileName: string; fileSizeBytes?: number; mimeType?: string; fileUrl?: string; fileData?: string } | null>(null);
 
   if (!isOpen) return null;
 
@@ -54,7 +54,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({ isOpen, onClose, o
       fileName,
       mimeType,
       fileSizeBytes: Math.round((base64Data.length * 3) / 4),
-      fileUrl: base64Data.startsWith('data:') ? base64Data : `data:${mimeType};base64,${base64Data}`,
+      fileData: base64Data,
     });
 
     const stepInterval = setInterval(() => {
@@ -117,11 +117,17 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({ isOpen, onClose, o
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setUploadedFileName(file.name);
-      setInvoiceFile({
-        fileName: file.name,
-        fileSizeBytes: file.size,
-        mimeType: file.type || 'application/pdf',
-      });
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64String = event.target?.result as string;
+        setInvoiceFile({
+          fileName: file.name,
+          fileSizeBytes: file.size,
+          mimeType: file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg'),
+          fileData: base64String,
+        });
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -139,7 +145,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({ isOpen, onClose, o
     const months = parseInt(warrantyMonths, 10) || 12;
     const endWarrantyDate = new Date(Date.now() + months * 30 * 24 * 3600 * 1000).toISOString().split('T')[0];
 
-    const newAsset = {
+    const newAsset: any = {
       name: name.trim(),
       categoryId: category,
       category: category.charAt(0).toUpperCase() + category.slice(1),
@@ -147,12 +153,11 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({ isOpen, onClose, o
       model: model.trim(),
       serialNumber: serialNumber.trim(),
       purchaseDate,
-      price: parseFloat(purchasePrice) || 0,
       purchasePrice: parseFloat(purchasePrice) || 0,
       currentValue: parseFloat(purchasePrice) || 0,
       seller: seller.trim(),
       location,
-      ownership,
+      owner: ownership,
       notes: notes.trim(),
       status: 'active',
       warranty: {
@@ -163,16 +168,18 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({ isOpen, onClose, o
         status: 'active',
         validLabel: `${months} Months Warranty`,
       },
-      invoice: {
+    };
+
+    if (invoiceFile?.fileData || uploadedFileName) {
+      newAsset.invoice = {
         name: `${name.trim()} Purchase Invoice & Bill`,
         fileName: invoiceFile?.fileName || `${name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_invoice.pdf`,
-        fileSizeBytes: invoiceFile?.fileSizeBytes || 1024 * 1024 * 1.4,
+        fileSizeBytes: invoiceFile?.fileSizeBytes || 102400,
         mimeType: invoiceFile?.mimeType || 'application/pdf',
-        fileUrl: invoiceFile?.fileUrl || 'https://example.com/docs/invoice.pdf',
-        date: purchaseDate,
+        fileData: invoiceFile?.fileData,
         notes: `Purchase bill from ${seller || 'Authorized Store'} for ₹${purchasePrice || 0}`,
-      },
-    };
+      };
+    }
 
 
     try {

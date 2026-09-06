@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { CreateAssetSchema, AssetFilterSchema } from '@home-assets/validation';
 import { logger } from '../utils/logger';
 import { getActiveUser } from '../services/user-store';
-import { prisma, ReminderType, ReminderStatus } from '../services/prisma';
+import { prisma, ReminderType, ReminderStatus, DocumentType } from '../services/prisma';
 
 export const assetsRouter = Router();
 
@@ -49,7 +49,7 @@ export function formatAssetResponse(asset: any) {
       assetId: d.assetId,
       name: d.name,
       type: d.type.toLowerCase(),
-      fileUrl: d.fileUrl,
+      fileUrl: d.fileUrl && !d.fileUrl.includes('example.com') && !d.fileUrl.includes('placehold.co') ? d.fileUrl : `/api/documents/${d.id}/file`,
       fileSizeBytes: d.fileSizeBytes,
       mimeType: d.mimeType,
       uploadedAt: d.createdAt.toISOString().split('T')[0],
@@ -273,8 +273,9 @@ assetsRouter.post('/', async (req, res) => {
     }
 
     const warrantyData = typeof validated.warranty === 'object' && validated.warranty !== null ? validated.warranty : undefined;
+    const invoiceData = typeof validated.invoice === 'object' && validated.invoice !== null ? validated.invoice : undefined;
 
-    // Create Asset with Warranty inside transaction
+    // Create Asset with Warranty and Invoice inside transaction
     const newAsset = await prisma.$transaction(async (tx) => {
       const asset = await tx.asset.create({
         data: {
@@ -330,6 +331,35 @@ assetsRouter.post('/', async (req, res) => {
             status: ReminderStatus.PENDING,
           },
         });
+      }
+
+      if (invoiceData) {
+        let calculatedSize = invoiceData.fileSizeBytes || 0;
+        if (!calculatedSize && invoiceData.fileData) {
+          const pureBase64 = invoiceData.fileData.includes(',') ? invoiceData.fileData.split(',')[1] : invoiceData.fileData;
+          calculatedSize = Math.round((pureBase64.length * 3) / 4);
+        }
+        if (!calculatedSize) calculatedSize = 102400;
+
+        const createdDoc = await tx.document.create({
+          data: {
+            assetId: asset.id,
+            type: DocumentType.INVOICE,
+            name: invoiceData.name || `${asset.name} Purchase Invoice`,
+            fileUrl: invoiceData.fileUrl || `/api/documents/temp/file`,
+            fileData: invoiceData.fileData || null,
+            mimeType: invoiceData.mimeType || 'application/pdf',
+            fileSizeBytes: calculatedSize,
+            uploadedById: userSession?.user.id || null,
+          },
+        });
+
+        if (!invoiceData.fileUrl) {
+          await tx.document.update({
+            where: { id: createdDoc.id },
+            data: { fileUrl: `/api/documents/${createdDoc.id}/file` },
+          });
+        }
       }
 
       return asset;

@@ -31,6 +31,9 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
   const [docTitle, setDocTitle] = useState('Tax Invoice & Bill');
   const [fileName, setFileName] = useState('');
   const [fileSize, setFileSize] = useState('');
+  const [fileData, setFileData] = useState<string | null>(null);
+  const [mimeType, setMimeType] = useState<string>('application/pdf');
+  const [rawSizeBytes, setRawSizeBytes] = useState<number>(0);
   const [fileAttached, setFileAttached] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -42,11 +45,20 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setFileName(file.name);
-      setFileSize(`${(file.size / (1024 * 1024)).toFixed(2)} MB`);
+      setRawSizeBytes(file.size);
+      const detectedMime = file.type || (file.name.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg');
+      setMimeType(detectedMime);
+      setFileSize(file.size > 1048576 ? `${(file.size / (1024 * 1024)).toFixed(2)} MB` : `${Math.round(file.size / 1024)} KB`);
       setFileAttached(true);
       if (!docTitle || docTitle === 'Tax Invoice & Bill') {
         setDocTitle(file.name.replace(/\.[^/.]+$/, ''));
       }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setFileData(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -64,27 +76,29 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
       return;
     }
 
-    setIsSubmitting(true);
-    const selectedAsset = assets.find((a) => a.id === selectedAssetId);
+    if (!selectedAssetId && assets.length > 0) {
+      setErrorMessage('Please select an asset to attach this document to.');
+      return;
+    }
 
-    const newDoc = {
-      id: `doc_${Date.now()}`,
-      assetId: selectedAssetId || undefined,
-      assetName: selectedAsset?.name || 'General Document',
+    setIsSubmitting(true);
+
+    const payload = {
+      assetId: selectedAssetId || assets[0]?.id,
       type: docType,
-      name: docTitle,
+      name: docTitle.trim(),
       fileName: fileName,
-      mimeType: fileName.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg',
-      fileSizeBytes: 1024 * 1024 * 1.2,
+      fileData: fileData || undefined,
+      mimeType: mimeType,
+      fileSizeBytes: rawSizeBytes || 102400,
       notes,
-      createdAt: new Date().toISOString(),
     };
 
     try {
       const res = await fetch(buildApiUrl(API_ENDPOINTS.DOCUMENTS.CREATE), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newDoc),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -92,12 +106,13 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
         throw new Error(errText || 'Failed to save document on server');
       }
 
+      const json = await res.json();
       setIsSubmitting(false);
-      onDocumentAdded(newDoc);
+      onDocumentAdded(json.data || payload);
       onClose();
-    } catch {
+    } catch (err: any) {
       setIsSubmitting(false);
-      setErrorMessage('Unable to save document. Please try again.');
+      setErrorMessage(err.message || 'Unable to save document. Please try again.');
     }
   };
 

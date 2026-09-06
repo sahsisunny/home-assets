@@ -38,6 +38,7 @@ export const AddDocumentScreen: React.FC<AddDocumentScreenProps> = ({
   const [selectedType, setSelectedType] = useState('invoice');
   const [docName, setDocName] = useState('');
   const [fileName, setFileName] = useState('');
+  const [fileData, setFileData] = useState<string | undefined>(undefined);
   const [fileSelected, setFileSelected] = useState(false);
   const [fileSizeBytes, setFileSizeBytes] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
@@ -54,6 +55,20 @@ export const AddDocumentScreen: React.FC<AddDocumentScreenProps> = ({
         setFileName(file.name || 'document.pdf');
         setFileSelected(true);
         if (file.size) setFileSizeBytes(file.size);
+
+        if (file.uri) {
+          try {
+            const resp = await fetch(file.uri);
+            const blob = await resp.blob();
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              setFileData(reader.result as string);
+            };
+            reader.readAsDataURL(blob);
+          } catch {
+            // keep uri
+          }
+        }
       }
     } catch {
       if (Platform.OS !== 'web') {
@@ -72,6 +87,7 @@ export const AddDocumentScreen: React.FC<AddDocumentScreenProps> = ({
         type: selectedType,
         name: docName,
         fileName,
+        fileData,
         mimeType: fileName.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg',
         fileSizeBytes,
       });

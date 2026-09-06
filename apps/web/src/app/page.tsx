@@ -63,6 +63,7 @@ import {
   RefreshCw,
   LogOut,
   ChevronDown,
+  ExternalLink,
 } from 'lucide-react';
 
 export default function WebDashboardPage() {
@@ -1616,6 +1617,27 @@ export default function WebDashboardPage() {
                             >
                               <Eye size={12} /> View
                             </button>
+                            <a
+                              href={doc.fileUrl && !doc.fileUrl.includes('example.com') && !doc.fileUrl.includes('placehold.co') ? (doc.fileUrl.startsWith('http') ? doc.fileUrl : buildApiUrl(doc.fileUrl)) : buildApiUrl(API_ENDPOINTS.DOCUMENTS.FILE(doc.id))}
+                              target="_blank"
+                              rel="noreferrer"
+                              title="Open Raw File"
+                              style={{
+                                padding: '6px 10px',
+                                borderRadius: '8px',
+                                border: '1px solid #E2E8F0',
+                                backgroundColor: '#F8F9FD',
+                                color: '#5C4EBA',
+                                fontSize: '12px',
+                                fontWeight: '700',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                textDecoration: 'none',
+                              }}
+                            >
+                              <ExternalLink size={12} /> Open
+                            </a>
                             <button
                               onClick={() => setEditDocument(doc)}
                               title="Edit Document"

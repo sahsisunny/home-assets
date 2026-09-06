@@ -73,6 +73,8 @@ export const API_ENDPOINTS = {
     LIST: '/documents',
     CREATE: '/documents',
     DETAILS: (id: string) => `/documents/${id}`,
+    FILE: (id: string) => `/documents/${id}/file`,
+    DOWNLOAD: (id: string) => `/documents/${id}/download`,
     UPDATE: (id: string) => `/documents/${id}`,
     DELETE: (id: string) => `/documents/${id}`,
     BY_ASSET: (assetId: string) => `/documents?assetId=${encodeURIComponent(assetId)}`,

@@ -28,6 +28,16 @@ app.use(cors());
 app.use(express.json({ limit: '25mb' }));
 app.use(requestLogger);
 
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'Home Asset Manager API',
+    version: '1.0.0',
+    documentation: 'https://github.com/sahsisunny/home-assets',
+    healthCheck: '/health',
+  });
+});
+
 app.get('/health', async (req, res) => {
   const isDbConnected = await checkDatabaseConnection();
   res.json({

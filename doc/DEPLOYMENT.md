@@ -35,10 +35,10 @@ This guide details how to deploy the entire **Home Asset Manager** stack complet
 3. Select your GitHub repository: `sahsisunny/home-assets`.
 4. Configure the Web Service:
    - **Name**: `home-assets-api`
-   - **Root Directory**: `apps/server` (or leave root with build filter)
+   - **Root Directory**: `apps/server` (or leave empty if building from root)
    - **Runtime**: `Node`
    - **Build Command**: `pnpm install --prod=false && pnpm --filter @home-assets/db db:generate && pnpm --filter @home-assets/server build`
-   - **Start Command**: `node apps/server/dist/index.mjs`
+   - **Start Command**: `node dist/index.mjs` (or `pnpm start`)
    - **Instance Type**: `Free`
 5. Add **Environment Variables**:
    - `DATABASE_URL`: *(Your Neon PostgreSQL connection string from Step 1)*

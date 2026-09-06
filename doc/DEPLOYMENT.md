@@ -37,8 +37,8 @@ This guide details how to deploy the entire **Home Asset Manager** stack complet
    - **Name**: `home-assets-api`
    - **Root Directory**: `apps/server` (or leave empty if building from root)
    - **Runtime**: `Node`
-   - **Build Command**: `pnpm install --prod=false && pnpm --filter @home-assets/db db:generate && pnpm --filter @home-assets/server build`
-   - **Start Command**: `node dist/index.mjs` (or `pnpm start`)
+   - **Build Command**: `pnpm install --prod=false && pnpm --filter @home-assets/db db:generate && pnpm --filter @home-assets/db db:push --accept-data-loss && pnpm --filter @home-assets/server build`
+   - **Start Command**: `node dist/index.js` (or `pnpm start`)
    - **Instance Type**: `Free`
 5. Add **Environment Variables**:
    - `DATABASE_URL`: *(Your Neon PostgreSQL connection string from Step 1)*

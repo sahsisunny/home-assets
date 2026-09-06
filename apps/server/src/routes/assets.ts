@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { randomUUID } from 'crypto';
 import { CreateAssetSchema, AssetFilterSchema } from '@home-assets/validation';
 import { logger } from '../utils/logger';
 import { getActiveUser } from '../services/user-store';
@@ -341,25 +342,22 @@ assetsRouter.post('/', async (req, res) => {
         }
         if (!calculatedSize) calculatedSize = 102400;
 
-        const createdDoc = await tx.document.create({
+        const invoiceDocId = randomUUID();
+        const invoiceFileUrl = invoiceData.fileUrl || `/api/documents/${invoiceDocId}/file`;
+
+        await tx.document.create({
           data: {
+            id: invoiceDocId,
             assetId: asset.id,
             type: DocumentType.INVOICE,
             name: invoiceData.name || `${asset.name} Purchase Invoice`,
-            fileUrl: invoiceData.fileUrl || `/api/documents/temp/file`,
+            fileUrl: invoiceFileUrl,
             fileData: invoiceData.fileData || null,
             mimeType: invoiceData.mimeType || 'application/pdf',
             fileSizeBytes: calculatedSize,
             uploadedById: userSession?.user.id || null,
           },
         });
-
-        if (!invoiceData.fileUrl) {
-          await tx.document.update({
-            where: { id: createdDoc.id },
-            data: { fileUrl: `/api/documents/${createdDoc.id}/file` },
-          });
-        }
       }
 
       return asset;

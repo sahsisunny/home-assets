@@ -1,9 +1,43 @@
 import { Router } from 'express';
+import { randomUUID } from 'crypto';
 import { logger } from '../utils/logger';
 import { prisma, DocumentType } from '../services/prisma';
 import { getActiveUser } from '../services/user-store';
 
 export const documentsRouter = Router();
+
+export interface DocumentRecord {
+  id: string;
+  assetId: string;
+  type: DocumentType;
+  name: string;
+  fileUrl: string;
+  mimeType: string;
+  fileSizeBytes: number;
+  fileData?: string | null;
+  uploadedById?: string | null;
+  createdAt: Date;
+  asset?: {
+    id: string;
+    name: string;
+  } | null;
+}
+
+export interface DocumentResponseDTO {
+  id: string;
+  assetId: string;
+  assetName: string;
+  type: string;
+  name: string;
+  fileName: string;
+  date: string;
+  sizeFormatted: string;
+  fileSizeBytes: number;
+  mimeType: string;
+  fileUrl: string;
+  hasFileContent: boolean;
+  createdAt: string;
+}
 
 function mapDocType(type?: string): DocumentType {
   const t = (type || '').toUpperCase();
@@ -16,7 +50,7 @@ function mapDocType(type?: string): DocumentType {
   return DocumentType.OTHER;
 }
 
-function formatDocumentResponse(doc: any) {
+function formatDocumentResponse(doc: DocumentRecord): DocumentResponseDTO {
   const isCustomUrl = doc.fileUrl && !doc.fileUrl.includes('placehold.co') && !doc.fileUrl.includes('example.com') && !doc.fileUrl.startsWith('/api/documents/');
   const fileUrl = isCustomUrl ? doc.fileUrl : `/api/documents/${doc.id}/file`;
 
@@ -76,7 +110,7 @@ documentsRouter.get('/', async (req, res) => {
     });
 
     logger.debug(`Listed ${docs.length} documents from PostgreSQL`, { filterType: type, assetId, count: docs.length }, 'PostgreSQL Documents');
-    return res.json({ success: true, data: docs.map(formatDocumentResponse), total: docs.length });
+    return res.json({ success: true, data: (docs as unknown as DocumentRecord[]).map(formatDocumentResponse), total: docs.length });
   } catch (err: any) {
     logger.error('Failed to list documents', err, undefined, 'PostgreSQL Documents');
     return res.status(500).json({ success: false, error: err.message });
@@ -181,13 +215,16 @@ documentsRouter.post('/', async (req, res) => {
     if (!calculatedSize) calculatedSize = 102400;
 
     const detectedMime = mimeType || (fileData?.startsWith('data:image/') ? fileData.substring(5, fileData.indexOf(';')) : 'application/pdf');
+    const docId = randomUUID();
+    const finalFileUrl = fileUrl || `/api/documents/${docId}/file`;
 
     const doc = await prisma.document.create({
       data: {
+        id: docId,
         assetId,
         type: docType,
         name: docName,
-        fileUrl: fileUrl || `/api/documents/temp/file`,
+        fileUrl: finalFileUrl,
         fileData: fileData || null,
         mimeType: detectedMime,
         fileSizeBytes: calculatedSize,
@@ -200,15 +237,6 @@ documentsRouter.post('/', async (req, res) => {
       },
     });
 
-    // Update fileUrl with permanent document ID endpoint if default
-    if (!fileUrl) {
-      await prisma.document.update({
-        where: { id: doc.id },
-        data: { fileUrl: `/api/documents/${doc.id}/file` },
-      });
-      doc.fileUrl = `/api/documents/${doc.id}/file`;
-    }
-
     logger.info(`Document stored in PostgreSQL: ${doc.name} (${doc.id}) for ${asset.name} (hasData: ${Boolean(fileData)}, ${Math.round(calculatedSize / 1024)} KB)`, {
       id: doc.id,
       name: doc.name,
@@ -217,7 +245,7 @@ documentsRouter.post('/', async (req, res) => {
       hasFileData: Boolean(fileData),
     }, 'PostgreSQL Documents');
 
-    return res.status(201).json({ success: true, data: formatDocumentResponse(doc) });
+    return res.status(201).json({ success: true, data: formatDocumentResponse(doc as unknown as DocumentRecord) });
   } catch (error: any) {
     logger.error('Failed to create document record in PostgreSQL', error, undefined, 'PostgreSQL Documents');
     return res.status(400).json({ success: false, error: error.message });
@@ -240,7 +268,7 @@ documentsRouter.get('/:id', async (req, res) => {
       return res.status(404).json({ success: false, error: 'Document not found' });
     }
 
-    return res.json({ success: true, data: formatDocumentResponse(doc) });
+    return res.json({ success: true, data: formatDocumentResponse(doc as unknown as DocumentRecord) });
   } catch (err: any) {
     return res.status(500).json({ success: false, error: err.message });
   }
@@ -267,7 +295,7 @@ documentsRouter.patch('/:id', async (req, res) => {
       },
     });
 
-    return res.json({ success: true, data: formatDocumentResponse(doc) });
+    return res.json({ success: true, data: formatDocumentResponse(doc as unknown as DocumentRecord) });
   } catch (err: any) {
     return res.status(404).json({ success: false, error: 'Document not found or update failed' });
   }

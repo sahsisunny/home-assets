@@ -93,6 +93,9 @@ importers:
       '@home-assets/validation':
         specifier: workspace:*
         version: link:../../packages/validation
+      '@prisma/client':
+        specifier: ^5.18.0
+        version: 5.22.0(prisma@5.22.0)
       cors:
         specifier: ^2.8.5
         version: 2.8.6
@@ -105,6 +108,9 @@ importers:
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.3
+      prisma:
+        specifier: ^5.18.0
+        version: 5.22.0
       tsup:
         specifier: ^8.2.4
         version: 8.5.1(tsx@4.23.13)(typescript@5.9.3)

@@ -48,16 +48,33 @@ app.get('/health', async (req, res) => {
   });
 });
 
-// API Routes
+// API Routes (mounted with /api/ and direct paths for universal compatibility)
 app.use('/api/auth', authRouter);
+app.use('/auth', authRouter);
+
 app.use('/api/assets', assetsRouter);
+app.use('/assets', assetsRouter);
+
 app.use('/api/invoices', invoicesRouter);
+app.use('/invoices', invoicesRouter);
+
 app.use('/api/documents', documentsRouter);
+app.use('/documents', documentsRouter);
+
 app.use('/api/reminders', remindersRouter);
+app.use('/reminders', remindersRouter);
+
 app.use('/api/services', servicesRouter);
+app.use('/services', servicesRouter);
+
 app.use('/api/household', householdsRouter);
+app.use('/household', householdsRouter);
+
 app.use('/api/analytics', analyticsRouter);
+app.use('/analytics', analyticsRouter);
+
 app.use('/api/search', searchRouter);
+app.use('/search', searchRouter);
 
 if (process.env.NODE_ENV !== 'test') {
   app.listen(port, async () => {

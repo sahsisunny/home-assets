@@ -21,16 +21,16 @@ export const API_BASE_URL = {
  * Helper function to get base API URL based on platform/environment
  */
 export function getApiBaseUrl(platform?: 'android' | 'ios' | 'web' | string): string {
-  if (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_URL) {
-    return process.env.NEXT_PUBLIC_API_URL;
+  let url =
+    (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_API_URL) ||
+    (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_API_URL) ||
+    (platform === 'android' ? API_BASE_URL.MOBILE_ANDROID_EMULATOR : 'http://localhost:4005/api');
+
+  url = url.trim().replace(/\/+$/, '');
+  if (!url.endsWith('/api')) {
+    url = `${url}/api`;
   }
-  if (typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_API_URL) {
-    return process.env.EXPO_PUBLIC_API_URL;
-  }
-  if (platform === 'android') {
-    return API_BASE_URL.MOBILE_ANDROID_EMULATOR;
-  }
-  return API_BASE_URL.WEB;
+  return url;
 }
 
 /**

@@ -17,7 +17,7 @@ function mapDocType(type?: string): DocumentType {
 }
 
 function formatDocumentResponse(doc: any) {
-  const isCustomUrl = doc.fileUrl && !doc.fileUrl.includes('placehold.co') && !doc.fileUrl.includes('example.com');
+  const isCustomUrl = doc.fileUrl && !doc.fileUrl.includes('placehold.co') && !doc.fileUrl.includes('example.com') && !doc.fileUrl.startsWith('/api/documents/');
   const fileUrl = isCustomUrl ? doc.fileUrl : `/api/documents/${doc.id}/file`;
 
   return {
@@ -32,7 +32,7 @@ function formatDocumentResponse(doc: any) {
     fileSizeBytes: doc.fileSizeBytes,
     mimeType: doc.mimeType,
     fileUrl,
-    hasFileContent: Boolean(doc.fileData),
+    hasFileContent: Boolean(doc.fileSizeBytes && doc.fileSizeBytes > 0),
     createdAt: doc.createdAt.toISOString(),
   };
 }
@@ -108,6 +108,8 @@ documentsRouter.get('/:id/file', async (req, res) => {
     res.setHeader('Content-Type', doc.mimeType || 'application/octet-stream');
     res.setHeader('Content-Length', fileBuffer.length);
     res.setHeader('Content-Disposition', `inline; filename="${safeFilename}"`);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     res.setHeader('Cache-Control', 'public, max-age=86400');
     return res.send(fileBuffer);
   } catch (err: any) {
@@ -141,6 +143,8 @@ documentsRouter.get('/:id/download', async (req, res) => {
     res.setHeader('Content-Type', doc.mimeType || 'application/octet-stream');
     res.setHeader('Content-Length', fileBuffer.length);
     res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     return res.send(fileBuffer);
   } catch (err: any) {
     logger.error('Failed to download document file', err, { id: req.params.id }, 'PostgreSQL Documents');

@@ -128,8 +128,18 @@ export const API_ENDPOINTS = {
  * Utility helper to build full URL from endpoint and optional baseUrl
  */
 export function buildApiUrl(endpoint: string, baseUrl?: string): string {
+  if (!endpoint) return '';
+  if (endpoint.startsWith('http://') || endpoint.startsWith('https://') || endpoint.startsWith('data:') || endpoint.startsWith('blob:')) {
+    return endpoint;
+  }
   const base = baseUrl || getApiBaseUrl();
   const cleanBase = base.endsWith('/') ? base.slice(0, -1) : base;
-  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  let cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+  // If cleanBase already ends with /api and cleanEndpoint starts with /api/, strip one /api to avoid /api/api/...
+  if (cleanBase.endsWith('/api') && cleanEndpoint.startsWith('/api/')) {
+    cleanEndpoint = cleanEndpoint.substring(4);
+  }
+
   return `${cleanBase}${cleanEndpoint}`;
 }

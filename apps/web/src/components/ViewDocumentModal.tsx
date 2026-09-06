@@ -14,6 +14,7 @@ import {
   Image as ImageIcon,
   Eye,
   Maximize2,
+  AlertCircle,
 } from 'lucide-react';
 
 interface ViewDocumentModalProps {
@@ -32,18 +33,16 @@ export const ViewDocumentModal: React.FC<ViewDocumentModalProps> = ({
   onDelete,
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   if (!isOpen || !doc) return null;
 
   const isInvoice = doc.type === 'invoice';
   const isWarranty = doc.type === 'warranty';
   const isPdf = doc.mimeType === 'application/pdf' || doc.fileName?.toLowerCase().endsWith('.pdf');
-  const isImage = doc.mimeType?.startsWith('image/') || doc.fileName?.match(/\.(jpg|jpeg|png|webp|gif|svg)$/i);
+  const isImage = !isPdf && (doc.mimeType?.startsWith('image/') || doc.fileName?.match(/\.(jpg|jpeg|png|webp|gif|svg)$/i) || !doc.mimeType);
 
-  const fileUrl = doc.fileUrl && !doc.fileUrl.includes('example.com') && !doc.fileUrl.includes('placehold.co')
-    ? (doc.fileUrl.startsWith('http') ? doc.fileUrl : buildApiUrl(doc.fileUrl))
-    : buildApiUrl(API_ENDPOINTS.DOCUMENTS.FILE(doc.id));
-
+  const fileUrl = buildApiUrl(doc.fileUrl || API_ENDPOINTS.DOCUMENTS.FILE(doc.id));
   const downloadUrl = buildApiUrl(API_ENDPOINTS.DOCUMENTS.DOWNLOAD(doc.id));
 
   return (
@@ -259,18 +258,20 @@ export const ViewDocumentModal: React.FC<ViewDocumentModalProps> = ({
             </div>
 
             {/* Document Render Area */}
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isPdf ? '0' : '16px', backgroundColor: '#0B1120' }}>
-              {isImage ? (
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isPdf ? '0' : '16px', backgroundColor: '#0B1120', minHeight: '300px' }}>
+              {isImage && !imageError ? (
                 <div style={{ width: '100%', maxHeight: isFullscreen ? '70vh' : '440px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                   <img
                     src={fileUrl}
                     alt={doc.name}
+                    onError={() => setImageError(true)}
                     style={{
                       maxHeight: isFullscreen ? '70vh' : '440px',
                       maxWidth: '100%',
                       objectFit: 'contain',
                       borderRadius: '8px',
                       boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+                      backgroundColor: '#FFFFFF',
                     }}
                   />
                 </div>
@@ -287,11 +288,30 @@ export const ViewDocumentModal: React.FC<ViewDocumentModalProps> = ({
                 />
               ) : (
                 <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94A3B8' }}>
-                  <FileText size={48} color="#818CF8" style={{ margin: '0 auto 12px' }} />
+                  <ImageIcon size={48} color="#818CF8" style={{ margin: '0 auto 12px' }} />
                   <p style={{ fontSize: '14px', fontWeight: '700', color: '#F1F5F9' }}>{doc.fileName || doc.name}</p>
-                  <p style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>
-                    {doc.mimeType || 'Document'} • {doc.sizeFormatted || 'Stored File'}
+                  <p style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px', marginBottom: '16px' }}>
+                    {doc.mimeType || 'Document'} • {doc.sizeFormatted || 'Stored in PostgreSQL'}
                   </p>
+                  <a
+                    href={fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      backgroundColor: '#5C4EBA',
+                      color: '#FFFFFF',
+                      padding: '8px 16px',
+                      borderRadius: '8px',
+                      fontWeight: '700',
+                      fontSize: '12px',
+                      textDecoration: 'none',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                    }}
+                  >
+                    <ExternalLink size={13} /> Open Image / Document File
+                  </a>
                 </div>
               )}
             </div>
@@ -300,7 +320,7 @@ export const ViewDocumentModal: React.FC<ViewDocumentModalProps> = ({
           {/* Quick Actions & Download Strip */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#64748B' }}>
-              <span>Format: <strong>{doc.mimeType || 'application/pdf'}</strong></span>
+              <span>Format: <strong>{doc.mimeType || 'image/jpeg'}</strong></span>
               <span>•</span>
               <span>Size: <strong>{doc.sizeFormatted || 'Saved in PostgreSQL'}</strong></span>
             </div>

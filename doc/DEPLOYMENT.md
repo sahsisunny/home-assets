@@ -37,7 +37,7 @@ This guide details how to deploy the entire **Home Asset Manager** stack complet
    - **Name**: `home-assets-api`
    - **Root Directory**: `apps/server` (or leave root with build filter)
    - **Runtime**: `Node`
-   - **Build Command**: `pnpm install && pnpm --filter @home-assets/db db:generate && pnpm --filter @home-assets/server build`
+   - **Build Command**: `pnpm install --prod=false && pnpm --filter @home-assets/db db:generate && pnpm --filter @home-assets/server build`
    - **Start Command**: `node apps/server/dist/index.mjs`
    - **Instance Type**: `Free`
 5. Add **Environment Variables**:

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { API_ENDPOINTS, buildApiUrl } from '@home-assets/tokens';
 import {
   Receipt,
@@ -12,6 +12,8 @@ import {
   Download,
   ExternalLink,
   Image as ImageIcon,
+  Eye,
+  Maximize2,
 } from 'lucide-react';
 
 interface ViewDocumentModalProps {
@@ -29,11 +31,14 @@ export const ViewDocumentModal: React.FC<ViewDocumentModalProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
   if (!isOpen || !doc) return null;
 
   const isInvoice = doc.type === 'invoice';
   const isWarranty = doc.type === 'warranty';
-  const isImage = doc.mimeType?.startsWith('image/') || doc.fileName?.match(/\.(jpg|jpeg|png|webp|gif)$/i);
+  const isPdf = doc.mimeType === 'application/pdf' || doc.fileName?.toLowerCase().endsWith('.pdf');
+  const isImage = doc.mimeType?.startsWith('image/') || doc.fileName?.match(/\.(jpg|jpeg|png|webp|gif|svg)$/i);
 
   const fileUrl = doc.fileUrl && !doc.fileUrl.includes('example.com') && !doc.fileUrl.includes('placehold.co')
     ? (doc.fileUrl.startsWith('http') ? doc.fileUrl : buildApiUrl(doc.fileUrl))
@@ -46,33 +51,34 @@ export const ViewDocumentModal: React.FC<ViewDocumentModalProps> = ({
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.7)',
-        backdropFilter: 'blur(6px)',
+        backgroundColor: 'rgba(15, 23, 42, 0.75)',
+        backdropFilter: 'blur(8px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 9999,
-        padding: '20px',
+        padding: isFullscreen ? '0px' : '20px',
       }}
     >
       <div
         style={{
           backgroundColor: '#FFFFFF',
-          borderRadius: '24px',
-          maxWidth: '600px',
+          borderRadius: isFullscreen ? '0px' : '24px',
+          maxWidth: isFullscreen ? '100vw' : '820px',
           width: '100%',
-          maxHeight: '90vh',
+          height: isFullscreen ? '100vh' : 'auto',
+          maxHeight: isFullscreen ? '100vh' : '92vh',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
           overflow: 'hidden',
-          border: '1px solid #E2E8F0',
+          border: isFullscreen ? 'none' : '1px solid #E2E8F0',
         }}
       >
         {/* Header */}
         <div
           style={{
-            padding: '20px 28px',
+            padding: '18px 26px',
             borderBottom: '1px solid #E2E8F0',
             display: 'flex',
             justifyContent: 'space-between',
@@ -83,8 +89,8 @@ export const ViewDocumentModal: React.FC<ViewDocumentModalProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div
               style={{
-                width: '44px',
-                height: '44px',
+                width: '42px',
+                height: '42px',
                 borderRadius: '12px',
                 backgroundColor: isInvoice ? '#ECFDF5' : '#EEF0FF',
                 display: 'flex',
@@ -92,21 +98,52 @@ export const ViewDocumentModal: React.FC<ViewDocumentModalProps> = ({
                 justifyContent: 'center',
               }}
             >
-              {isInvoice ? <Receipt size={24} color="#059669" /> : isWarranty ? <ShieldCheck size={24} color="#5C4EBA" /> : <FileText size={24} color="#5C4EBA" />}
+              {isInvoice ? <Receipt size={22} color="#059669" /> : isWarranty ? <ShieldCheck size={22} color="#5C4EBA" /> : <FileText size={22} color="#5C4EBA" />}
             </div>
             <div>
-              <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#1E293B' }}>{doc.name}</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h2 style={{ fontSize: '17px', fontWeight: '800', color: '#1E293B' }}>{doc.name}</h2>
+                <span
+                  style={{
+                    padding: '2px 8px',
+                    borderRadius: '6px',
+                    fontSize: '11px',
+                    fontWeight: '800',
+                    backgroundColor: isInvoice ? '#ECFDF5' : '#EEF0FF',
+                    color: isInvoice ? '#059669' : '#5C4EBA',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {doc.type}
+                </span>
+              </div>
               <p style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
-                Linked to: <strong>{doc.assetName || 'General Household'}</strong>
+                Asset: <strong>{doc.assetName || 'General Household'}</strong> • {doc.date || 'Recent'}
               </p>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
-              onClick={() => {
-                onEdit(doc);
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Preview'}
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid #CBD5E1',
+                borderRadius: '10px',
+                width: '36px',
+                height: '36px',
+                cursor: 'pointer',
+                color: '#475569',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
+            >
+              <Maximize2 size={15} />
+            </button>
+            <button
+              onClick={() => onEdit(doc)}
               style={{
                 backgroundColor: '#EEF0FF',
                 color: '#5C4EBA',
@@ -165,41 +202,110 @@ export const ViewDocumentModal: React.FC<ViewDocumentModalProps> = ({
           </div>
         </div>
 
-        {/* Content */}
-        <div style={{ padding: '24px 28px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          {/* File Card Preview */}
+        {/* Scrollable Content Body */}
+        <div style={{ padding: '22px 26px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '18px' }}>
+          
+          {/* PRIMARY DOCUMENT PREVIEW FRAME */}
           <div
             style={{
-              border: '2px dashed #CBD5E1',
+              backgroundColor: '#0F172A',
               borderRadius: '16px',
-              padding: '20px',
-              textAlign: 'center',
-              backgroundColor: '#F8F9FD',
+              overflow: 'hidden',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.12)',
+              border: '1px solid #1E293B',
+              position: 'relative',
+              minHeight: '280px',
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>
-              {isImage ? <ImageIcon size={38} color="#5C4EBA" /> : <FileText size={38} color="#5C4EBA" />}
+            {/* Preview Toolbar */}
+            <div
+              style={{
+                padding: '10px 16px',
+                backgroundColor: '#1E293B',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                borderBottom: '1px solid #334155',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#E2E8F0', fontSize: '13px', fontWeight: '600' }}>
+                <Eye size={15} color="#818CF8" />
+                <span>Live Document Preview</span>
+                <span style={{ color: '#94A3B8', fontSize: '11px', fontWeight: '400' }}>({doc.fileName || doc.name})</span>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <a
+                  href={fileUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    color: '#93C5FD',
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    textDecoration: 'none',
+                    padding: '4px 8px',
+                    borderRadius: '6px',
+                    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                  }}
+                >
+                  <ExternalLink size={12} /> Open Full
+                </a>
+              </div>
             </div>
-            <h4 style={{ fontSize: '15px', fontWeight: '800', color: '#1E293B' }}>{doc.fileName || doc.name || 'document.pdf'}</h4>
-            <p style={{ fontSize: '12px', color: '#64748B', marginTop: '4px' }}>
-              {doc.sizeFormatted || 'Document File'} • {doc.mimeType || 'application/pdf'} • Uploaded {doc.date || 'Recently'}
-            </p>
 
-            {/* Live Image Preview if Image Document */}
-            {isImage && (
-              <div style={{ marginTop: '14px', maxHeight: '180px', overflow: 'hidden', borderRadius: '10px', border: '1px solid #E2E8F0', display: 'flex', justifyContent: 'center', backgroundColor: '#FFFFFF' }}>
-                <img
-                  src={fileUrl}
-                  alt={doc.name}
-                  style={{ maxHeight: '180px', maxWidth: '100%', objectFit: 'contain' }}
-                  onError={(e) => {
-                    (e.target as HTMLElement).style.display = 'none';
+            {/* Document Render Area */}
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isPdf ? '0' : '16px', backgroundColor: '#0B1120' }}>
+              {isImage ? (
+                <div style={{ width: '100%', maxHeight: isFullscreen ? '70vh' : '440px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  <img
+                    src={fileUrl}
+                    alt={doc.name}
+                    style={{
+                      maxHeight: isFullscreen ? '70vh' : '440px',
+                      maxWidth: '100%',
+                      objectFit: 'contain',
+                      borderRadius: '8px',
+                      boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+                    }}
+                  />
+                </div>
+              ) : isPdf ? (
+                <iframe
+                  src={`${fileUrl}#toolbar=1&view=FitH`}
+                  title={doc.name}
+                  style={{
+                    width: '100%',
+                    height: isFullscreen ? '70vh' : '420px',
+                    border: 'none',
+                    backgroundColor: '#FFFFFF',
                   }}
                 />
-              </div>
-            )}
+              ) : (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#94A3B8' }}>
+                  <FileText size={48} color="#818CF8" style={{ margin: '0 auto 12px' }} />
+                  <p style={{ fontSize: '14px', fontWeight: '700', color: '#F1F5F9' }}>{doc.fileName || doc.name}</p>
+                  <p style={{ fontSize: '12px', color: '#94A3B8', marginTop: '4px' }}>
+                    {doc.mimeType || 'Document'} • {doc.sizeFormatted || 'Stored File'}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
 
-            <div style={{ marginTop: '16px', display: 'flex', gap: '10px', justifyContent: 'center' }}>
+          {/* Quick Actions & Download Strip */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#64748B' }}>
+              <span>Format: <strong>{doc.mimeType || 'application/pdf'}</strong></span>
+              <span>•</span>
+              <span>Size: <strong>{doc.sizeFormatted || 'Saved in PostgreSQL'}</strong></span>
+            </div>
+
+            <div style={{ display: 'flex', gap: '8px' }}>
               <a
                 href={fileUrl}
                 target="_blank"
@@ -217,7 +323,7 @@ export const ViewDocumentModal: React.FC<ViewDocumentModalProps> = ({
                   gap: '6px',
                 }}
               >
-                <ExternalLink size={14} /> Open / View File
+                <ExternalLink size={14} /> Open in New Tab
               </a>
               <a
                 href={downloadUrl}
@@ -237,7 +343,7 @@ export const ViewDocumentModal: React.FC<ViewDocumentModalProps> = ({
                   gap: '6px',
                 }}
               >
-                <Download size={14} /> Download
+                <Download size={14} /> Download File
               </a>
             </div>
           </div>
@@ -245,7 +351,7 @@ export const ViewDocumentModal: React.FC<ViewDocumentModalProps> = ({
           {/* Details Table */}
           <div style={{ border: '1px solid #E2E8F0', borderRadius: '14px', overflow: 'hidden' }}>
             <div style={{ padding: '12px 16px', backgroundColor: '#F8F9FD', borderBottom: '1px solid #E2E8F0', fontSize: '13px', fontWeight: '700', color: '#334155', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <FileText size={14} /> Document Metadata
+              <FileText size={14} /> Document Information
             </div>
             <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
@@ -257,8 +363,8 @@ export const ViewDocumentModal: React.FC<ViewDocumentModalProps> = ({
                 <span style={{ fontWeight: '700', color: '#1E293B' }}>{doc.assetName || 'None'}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                <span style={{ color: '#64748B' }}>File Format:</span>
-                <span style={{ fontWeight: '600', color: '#1E293B' }}>{doc.mimeType || 'application/pdf'}</span>
+                <span style={{ color: '#64748B' }}>File Name:</span>
+                <span style={{ fontWeight: '600', color: '#1E293B' }}>{doc.fileName || doc.name}</span>
               </div>
               {doc.notes && (
                 <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '10px' }}>
@@ -273,7 +379,7 @@ export const ViewDocumentModal: React.FC<ViewDocumentModalProps> = ({
         {/* Footer */}
         <div
           style={{
-            padding: '16px 28px',
+            padding: '14px 26px',
             borderTop: '1px solid #E2E8F0',
             display: 'flex',
             justifyContent: 'flex-end',

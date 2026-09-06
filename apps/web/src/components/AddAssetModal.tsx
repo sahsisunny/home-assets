@@ -698,7 +698,7 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({ isOpen, onClose, o
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '700', color: '#1E293B', marginBottom: '2px' }}>
-                    <Receipt size={14} color="#5C4EBA" /> Attach Purchase Invoice / Receipt
+                    <Receipt size={14} color="#059669" /> Attach Purchase Invoice / Receipt
                   </label>
                   <p style={{ fontSize: '11px', color: '#64748B' }}>
                     {uploadedFileName ? `Attached: ${uploadedFileName}` : 'Automatically saved to Documents & Linked to this asset in DB'}
@@ -725,6 +725,17 @@ export const AddAssetModal: React.FC<AddAssetModalProps> = ({ isOpen, onClose, o
                   />
                 </label>
               </div>
+
+              {/* Live Invoice Preview Thumbnail */}
+              {invoiceFile?.fileData && (invoiceFile.mimeType?.startsWith('image/') || invoiceFile.fileData.startsWith('data:image/')) && (
+                <div style={{ marginTop: '12px', maxHeight: '140px', overflow: 'hidden', borderRadius: '8px', border: '1px solid #E2E8F0', display: 'flex', justifyContent: 'center', backgroundColor: '#FFFFFF', padding: '4px' }}>
+                  <img
+                    src={invoiceFile.fileData}
+                    alt="Invoice Preview"
+                    style={{ maxHeight: '130px', maxWidth: '100%', objectFit: 'contain', borderRadius: '4px' }}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Footer Buttons */}

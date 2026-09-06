@@ -352,38 +352,62 @@ export const AddDocumentModal: React.FC<AddDocumentModalProps> = ({
             {fileAttached && (
               <div
                 style={{
-                  marginTop: '10px',
-                  padding: '10px 14px',
-                  backgroundColor: '#F1F5F9',
-                  borderRadius: '10px',
+                  marginTop: '12px',
+                  padding: '12px 14px',
+                  backgroundColor: '#F8F9FD',
+                  borderRadius: '12px',
+                  border: '1px solid #E2E8F0',
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  fontSize: '13px',
+                  flexDirection: 'column',
+                  gap: '10px',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <FileText size={15} color="#5C4EBA" />
-                  <span style={{ fontWeight: '600', color: '#1E293B' }}>{fileName}</span>
-                  <span style={{ color: '#64748B', fontSize: '12px' }}>({fileSize})</span>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <FileText size={16} color="#5C4EBA" />
+                    <span style={{ fontWeight: '700', color: '#1E293B', fontSize: '13px' }}>{fileName}</span>
+                    <span style={{ color: '#64748B', fontSize: '12px' }}>({fileSize})</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFileAttached(false);
+                      setFileName('');
+                      setFileData(null);
+                    }}
+                    style={{
+                      background: '#FEE2E2',
+                      border: 'none',
+                      color: '#DC2626',
+                      borderRadius: '6px',
+                      padding: '4px 8px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      fontSize: '11px',
+                      fontWeight: '700',
+                      gap: '4px',
+                    }}
+                  >
+                    <X size={12} /> Remove
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFileAttached(false);
-                    setFileName('');
-                  }}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#EF4444',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
-                >
-                  <X size={14} />
-                </button>
+
+                {/* Instant Live Image Thumbnail Preview */}
+                {fileData && (mimeType.startsWith('image/') || fileData.startsWith('data:image/')) && (
+                  <div style={{ maxHeight: '160px', overflow: 'hidden', borderRadius: '8px', border: '1px solid #CBD5E1', display: 'flex', justifyContent: 'center', backgroundColor: '#FFFFFF', padding: '4px' }}>
+                    <img
+                      src={fileData}
+                      alt="Uploaded preview"
+                      style={{ maxHeight: '150px', maxWidth: '100%', objectFit: 'contain', borderRadius: '4px' }}
+                    />
+                  </div>
+                )}
+                {fileData && mimeType === 'application/pdf' && (
+                  <div style={{ padding: '8px 12px', backgroundColor: '#EEF0FF', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#5C4EBA', fontWeight: '600' }}>
+                    <FileText size={14} /> PDF Document ready to save & stream
+                  </div>
+                )}
               </div>
             )}
           </div>

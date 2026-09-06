@@ -25,6 +25,7 @@ import {
   Clock,
   AlertTriangle,
   Loader2,
+  ExternalLink,
 } from 'lucide-react';
 
 interface ViewAssetModalProps {
@@ -555,66 +556,104 @@ export const ViewAssetModal: React.FC<ViewAssetModalProps> = ({
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {asset.documents?.map((doc: any) => (
-                        <div
-                          key={doc.id}
-                          style={{
-                            padding: '14px 16px',
-                            border: '1px solid #E2E8F0',
-                            borderRadius: '12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            backgroundColor: '#FFFFFF',
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            {doc.type === 'invoice' ? <Receipt size={22} color="#059669" /> : <FileText size={22} color="#5C4EBA" />}
-                            <div>
-                              <h5 style={{ fontSize: '14px', fontWeight: '700', color: '#1E293B' }}>{doc.name}</h5>
-                              <p style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
-                                {doc.fileName} • {doc.sizeFormatted || '1.2 MB'} • {doc.date}
-                              </p>
-                            </div>
-                          </div>
+                      {asset.documents?.map((doc: any) => {
+                        const fileUrl = doc.fileUrl && !doc.fileUrl.includes('example.com') && !doc.fileUrl.includes('placehold.co')
+                          ? (doc.fileUrl.startsWith('http') ? doc.fileUrl : buildApiUrl(doc.fileUrl))
+                          : buildApiUrl(API_ENDPOINTS.DOCUMENTS.FILE(doc.id));
 
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span
-                              style={{
-                                padding: '3px 8px',
-                                borderRadius: '6px',
-                                fontSize: '11px',
-                                fontWeight: '700',
-                                backgroundColor: '#EEF0FF',
-                                color: '#5C4EBA',
-                                textTransform: 'uppercase',
-                              }}
-                            >
-                              {doc.type}
-                            </span>
-                            {onViewDocument && (
-                              <button
-                                onClick={() => onViewDocument(doc)}
+                        return (
+                          <div
+                            key={doc.id}
+                            style={{
+                              padding: '14px 16px',
+                              border: '1px solid #E2E8F0',
+                              borderRadius: '12px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              backgroundColor: '#FFFFFF',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <div
+                                style={{
+                                  width: '38px',
+                                  height: '38px',
+                                  borderRadius: '10px',
+                                  backgroundColor: doc.type === 'invoice' ? '#ECFDF5' : '#EEF0FF',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  flexShrink: 0,
+                                }}
+                              >
+                                {doc.type === 'invoice' ? <Receipt size={20} color="#059669" /> : <FileText size={20} color="#5C4EBA" />}
+                              </div>
+                              <div>
+                                <h5 style={{ fontSize: '14px', fontWeight: '700', color: '#1E293B' }}>{doc.name}</h5>
+                                <p style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
+                                  {doc.fileName || doc.name} • {doc.sizeFormatted || 'Saved Document'}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span
+                                style={{
+                                  padding: '3px 8px',
+                                  borderRadius: '6px',
+                                  fontSize: '11px',
+                                  fontWeight: '700',
+                                  backgroundColor: doc.type === 'invoice' ? '#ECFDF5' : '#EEF0FF',
+                                  color: doc.type === 'invoice' ? '#059669' : '#5C4EBA',
+                                  textTransform: 'uppercase',
+                                }}
+                              >
+                                {doc.type}
+                              </span>
+                              {onViewDocument && (
+                                <button
+                                  onClick={() => onViewDocument(doc)}
+                                  style={{
+                                    padding: '6px 12px',
+                                    borderRadius: '8px',
+                                    border: '1px solid #CBD5E1',
+                                    backgroundColor: '#FFFFFF',
+                                    color: '#334155',
+                                    fontSize: '12px',
+                                    fontWeight: '700',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                  }}
+                                >
+                                  <Eye size={13} color="#5C4EBA" /> Preview
+                                </button>
+                              )}
+                              <a
+                                href={fileUrl}
+                                target="_blank"
+                                rel="noreferrer"
                                 style={{
                                   padding: '6px 10px',
                                   borderRadius: '8px',
-                                  border: '1px solid #CBD5E1',
-                                  backgroundColor: '#FFFFFF',
-                                  color: '#334155',
+                                  backgroundColor: '#EEF0FF',
+                                  color: '#5C4EBA',
                                   fontSize: '12px',
-                                  fontWeight: '600',
-                                  cursor: 'pointer',
+                                  fontWeight: '700',
                                   display: 'flex',
                                   alignItems: 'center',
                                   gap: '4px',
+                                  textDecoration: 'none',
                                 }}
                               >
-                                <Eye size={12} /> View
-                              </button>
-                            )}
+                                <ExternalLink size={12} /> Open
+                              </a>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>

@@ -581,10 +581,6 @@ export function useVoiceAssistant(options: UseVoiceAssistantOptions = {}) {
             captionTimeoutRef.current = setTimeout(() => {
               setLiveCaption(null);
             }, 3000);
-
-            if (optionsRef.current.onAssetModified) {
-              optionsRef.current.onAssetModified();
-            }
           } else if (msg.type === 'error') {
             setError(msg.error || 'Voice assistant error');
             setStatus('error');
@@ -670,10 +666,6 @@ export function useVoiceAssistant(options: UseVoiceAssistantOptions = {}) {
           captionTimeoutRef.current = setTimeout(() => {
             setLiveCaption(null);
           }, 3500);
-
-          if (optionsRef.current.onAssetModified) {
-            optionsRef.current.onAssetModified();
-          }
         } else {
           setError(json.error || 'Failed to get answer');
           setStatus('listening');

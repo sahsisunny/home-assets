@@ -2488,9 +2488,6 @@ export default function WebDashboardPage() {
         onClose={() => setIsVoiceAssistantOpen(false)}
         currentRoute={`/${activeTab}`}
         currentAssetId={viewAssetId || undefined}
-        onAssetModified={() => {
-          loadData();
-        }}
       />
     </div>
   );

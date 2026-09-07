@@ -57,26 +57,9 @@ export default function WebLoginPage() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        backgroundColor: '#F8F9FD',
-      }}
-    >
+    <div className="auth-split-layout">
       {/* Left Column: Brand Hero Banner (Desktop) */}
-      <div
-        style={{
-          flex: 1,
-          backgroundColor: '#5C4EBA',
-          color: '#FFFFFF',
-          padding: '60px 48px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          backgroundImage: 'radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.15) 0%, transparent 60%)',
-        }}
-      >
+      <div className="auth-hero-col">
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div
             style={{
@@ -173,26 +156,8 @@ export default function WebLoginPage() {
       </div>
 
       {/* Right Column: Auth Form Card */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '40px 32px',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '440px',
-            width: '100%',
-            backgroundColor: '#FFFFFF',
-            borderRadius: '24px',
-            padding: '40px 36px',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.04)',
-            border: '1px solid #E2E8F0',
-          }}
-        >
+      <div className="auth-form-col">
+        <div className="auth-card-box">
           <div style={{ marginBottom: '28px' }}>
             <h2 style={{ fontSize: '26px', fontWeight: '800', color: '#1E293B' }}>Log In</h2>
             <p style={{ fontSize: '14px', color: '#64748B', marginTop: '6px' }}>

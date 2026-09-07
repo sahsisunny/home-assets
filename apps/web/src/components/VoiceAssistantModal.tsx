@@ -187,14 +187,15 @@ export function VoiceAssistantModal({
 
   return (
     <div
+      className="voice-assistant-modal-container"
       style={{
         position: 'fixed',
         bottom: '20px',
         right: '20px',
         width: isExpanded ? '680px' : '440px',
-        maxWidth: 'calc(100vw - 28px)',
+        maxWidth: 'calc(100vw - 20px)',
         height: isExpanded ? '780px' : '620px',
-        maxHeight: 'calc(100vh - 40px)',
+        maxHeight: 'calc(100vh - 30px)',
         backgroundColor: '#FFFFFF',
         borderRadius: '24px',
         boxShadow: '0 25px 60px -12px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(226, 232, 240, 0.9)',
@@ -207,6 +208,24 @@ export function VoiceAssistantModal({
       }}
     >
       <style>{`
+        @media (max-width: 640px) {
+          .voice-assistant-modal-container {
+            width: calc(100vw - 16px) !important;
+            height: calc(100vh - 20px) !important;
+            max-height: 94vh !important;
+            right: 8px !important;
+            bottom: 10px !important;
+            left: 8px !important;
+            border-radius: 20px !important;
+            margin: 0 auto !important;
+          }
+          #global-voice-assistant-trigger {
+            bottom: 16px !important;
+            right: 16px !important;
+            height: 46px !important;
+            padding: 0 14px 0 6px !important;
+          }
+        }
         @keyframes nehaVoiceAura {
           0% { transform: scale(0.94); opacity: 0.85; }
           50% { transform: scale(1.18); opacity: 0.35; }

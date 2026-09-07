@@ -79,25 +79,9 @@ export default function WebRegisterPage() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        backgroundColor: '#F8F9FD',
-      }}
-    >
+    <div className="auth-split-layout">
       {/* Left Column Hero */}
-      <div
-        style={{
-          flex: 1,
-          backgroundColor: '#5C4EBA',
-          color: '#FFFFFF',
-          padding: '60px 48px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-        }}
-      >
+      <div className="auth-hero-col">
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <div
             style={{
@@ -130,27 +114,8 @@ export default function WebRegisterPage() {
       </div>
 
       {/* Right Column Form */}
-      <div
-        style={{
-          flex: 1.2,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '40px 32px',
-          overflowY: 'auto',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: '480px',
-            width: '100%',
-            backgroundColor: '#FFFFFF',
-            borderRadius: '24px',
-            padding: '40px 36px',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.04)',
-            border: '1px solid #E2E8F0',
-          }}
-        >
+      <div className="auth-form-col" style={{ overflowY: 'auto' }}>
+        <div className="auth-card-box" style={{ maxWidth: '480px' }}>
           <div style={{ marginBottom: '24px' }}>
             <h2 style={{ fontSize: '26px', fontWeight: '800', color: '#1E293B' }}>Create Account</h2>
             <p style={{ fontSize: '14px', color: '#64748B', marginTop: '6px' }}>

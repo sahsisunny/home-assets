@@ -87,6 +87,7 @@ export default function WebDashboardPage() {
 
   const [isInviteMemberOpen, setIsInviteMemberOpen] = useState(false);
   const [isVoiceAssistantOpen, setIsVoiceAssistantOpen] = useState(false);
+  const [isMobileActionsOpen, setIsMobileActionsOpen] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -426,45 +427,33 @@ export default function WebDashboardPage() {
       )}
 
       {/* Top Navbar */}
-      <header
-        style={{
-          height: '70px',
-          backgroundColor: '#FFFFFF',
-          borderBottom: '1px solid #E2E8F0',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 32px',
-          position: 'sticky',
-          top: 0,
-          zIndex: 100,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <header className="app-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div
             style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '12px',
+              width: '38px',
+              height: '38px',
+              borderRadius: '10px',
               backgroundColor: '#5C4EBA',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               color: '#FFFFFF',
+              flexShrink: 0,
             }}
           >
             <Home size={20} />
           </div>
           <div>
-            <h1 style={{ fontSize: '18px', fontWeight: '800', color: '#1E293B' }}>
+            <h1 className="header-brand-title" style={{ fontSize: '17px', fontWeight: '800', color: '#1E293B', whiteSpace: 'nowrap' }}>
               Home Asset Manager
             </h1>
-            <p style={{ fontSize: '12px', color: '#64748B' }}>Household Assets, Warranties & Services</p>
+            <p className="header-brand-sub" style={{ fontSize: '11px', color: '#64748B' }}>Household Assets, Warranties & Services</p>
           </div>
         </div>
 
         {/* Global Search Bar with Live Flyout */}
-        <div style={{ flex: 1, maxWidth: '440px', margin: '0 24px', position: 'relative' }}>
+        <div className="header-search-box">
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             {isSearching ? (
               <Loader2 size={16} className="animate-spin" color="#5C4EBA" style={{ position: 'absolute', left: '14px', pointerEvents: 'none' }} />
@@ -478,7 +467,7 @@ export default function WebDashboardPage() {
               onChange={(e) => handleSearch(e.target.value)}
               style={{
                 width: '100%',
-                padding: '10px 16px 10px 38px',
+                padding: '9px 14px 9px 38px',
                 borderRadius: '12px',
                 border: '1px solid #CBD5E1',
                 backgroundColor: '#F8F9FD',
@@ -722,8 +711,8 @@ export default function WebDashboardPage() {
           )}
         </div>
 
-        {/* Global Action Buttons */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Global Action Buttons (Desktop / Tablet) */}
+        <div className="header-desktop-actions">
           <button
             onClick={() => loadData()}
             disabled={isLoading}
@@ -743,7 +732,7 @@ export default function WebDashboardPage() {
             }}
           >
             <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
-            <span>{isLoading ? 'Syncing...' : 'Refresh'}</span>
+            <span className="action-text-hide">{isLoading ? 'Syncing...' : 'Refresh'}</span>
           </button>
           <button
             onClick={() => setIsAddReminderOpen(true)}
@@ -761,7 +750,7 @@ export default function WebDashboardPage() {
               gap: '6px',
             }}
           >
-            <Plus size={14} /> Set Reminder
+            <Plus size={14} /> <span className="action-text-hide">Set Reminder</span>
           </button>
           <button
             onClick={() => setIsAddServiceOpen(true)}
@@ -779,7 +768,7 @@ export default function WebDashboardPage() {
               gap: '6px',
             }}
           >
-            <Plus size={14} /> Log Service
+            <Plus size={14} /> <span className="action-text-hide">Log Service</span>
           </button>
           <button
             onClick={() => setIsAddDocumentOpen(true)}
@@ -797,7 +786,7 @@ export default function WebDashboardPage() {
               gap: '6px',
             }}
           >
-            <Plus size={14} /> Add Document
+            <Plus size={14} /> <span className="action-text-hide">Add Document</span>
           </button>
           <button
             onClick={() => setIsAddAssetOpen(true)}
@@ -816,7 +805,7 @@ export default function WebDashboardPage() {
               gap: '6px',
             }}
           >
-            <Plus size={15} /> Add Asset (with Invoice)
+            <Plus size={15} /> <span>Add Asset</span>
           </button>
 
           {/* User Profile Avatar & Dropdown */}
@@ -856,12 +845,6 @@ export default function WebDashboardPage() {
                       .join('')
                       .toUpperCase()
                   : 'HO'}
-              </div>
-              <div style={{ textAlign: 'left', display: 'none', minWidth: '80px' }}>
-                <p style={{ fontSize: '12px', fontWeight: '700', color: '#1E293B', lineHeight: '1.2' }}>
-                  {user?.fullName || 'Homeowner'}
-                </p>
-                <p style={{ fontSize: '10px', color: '#64748B' }}>{user?.role || 'Owner'}</p>
               </div>
               <ChevronDown size={14} color="#64748B" />
             </button>
@@ -919,7 +902,6 @@ export default function WebDashboardPage() {
                   <Users size={14} color="#5C4EBA" /> Household & Family
                 </button>
 
-
                 <button
                   onClick={() => {
                     handleResetAssets();
@@ -971,24 +953,203 @@ export default function WebDashboardPage() {
             )}
           </div>
         </div>
+
+        {/* Mobile Actions Toolbar */}
+        <div className="header-mobile-actions" style={{ position: 'relative' }}>
+          <button
+            onClick={() => loadData()}
+            disabled={isLoading}
+            title="Refresh"
+            style={{
+              backgroundColor: '#FFFFFF',
+              color: '#475569',
+              border: '1px solid #CBD5E1',
+              padding: '7px 9px',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontWeight: '700',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+          </button>
+
+          <button
+            onClick={() => setIsMobileActionsOpen(!isMobileActionsOpen)}
+            style={{
+              backgroundColor: '#5C4EBA',
+              color: '#FFFFFF',
+              border: 'none',
+              padding: '7px 11px',
+              borderRadius: '8px',
+              fontSize: '12px',
+              fontWeight: '700',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <Plus size={14} /> <span>New</span>
+          </button>
+
+          {isMobileActionsOpen && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '42px',
+                right: '40px',
+                backgroundColor: '#FFFFFF',
+                borderRadius: '14px',
+                border: '1px solid #E2E8F0',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+                padding: '8px',
+                zIndex: 1001,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '4px',
+                minWidth: '200px',
+              }}
+            >
+              <button
+                onClick={() => {
+                  setIsAddAssetOpen(true);
+                  setIsMobileActionsOpen(false);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '9px 12px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: '#EEF0FF',
+                  color: '#5C4EBA',
+                  fontSize: '13px',
+                  fontWeight: '700',
+                  textAlign: 'left',
+                }}
+              >
+                <Plus size={14} /> Add Asset (with Invoice)
+              </button>
+              <button
+                onClick={() => {
+                  setIsAddDocumentOpen(true);
+                  setIsMobileActionsOpen(false);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '9px 12px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: 'transparent',
+                  color: '#334155',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  textAlign: 'left',
+                }}
+              >
+                <FileText size={14} color="#5C4EBA" /> Add Document
+              </button>
+              <button
+                onClick={() => {
+                  setIsAddServiceOpen(true);
+                  setIsMobileActionsOpen(false);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '9px 12px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: 'transparent',
+                  color: '#334155',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  textAlign: 'left',
+                }}
+              >
+                <Wrench size={14} color="#D97706" /> Log Service
+              </button>
+              <button
+                onClick={() => {
+                  setIsAddReminderOpen(true);
+                  setIsMobileActionsOpen(false);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '9px 12px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  backgroundColor: 'transparent',
+                  color: '#334155',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  textAlign: 'left',
+                }}
+              >
+                <Clock size={14} color="#DC2626" /> Set Reminder
+              </button>
+            </div>
+          )}
+
+          {/* User Profile Avatar Trigger for mobile */}
+          <div style={{ position: 'relative' }}>
+            <button
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: '#F8F9FD',
+                border: '1px solid #E2E8F0',
+                borderRadius: '10px',
+                padding: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              <div
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '8px',
+                  backgroundColor: '#5C4EBA',
+                  color: '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: '800',
+                  fontSize: '11px',
+                }}
+              >
+                {user?.fullName
+                  ? user.fullName
+                      .split(' ')
+                      .map((n) => n[0])
+                      .slice(0, 2)
+                      .join('')
+                      .toUpperCase()
+                  : 'HO'}
+              </div>
+            </button>
+          </div>
+        </div>
       </header>
 
       {/* Main Container */}
-      <main style={{ maxWidth: '1240px', width: '100%', margin: '28px auto', padding: '0 24px' }}>
+      <main className="main-wrapper">
         {isLoading ? (
           <div>
             {/* Skeleton KPI Row */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                gap: '16px',
-                marginBottom: '28px',
-              }}
-            >
+            <div className="kpi-grid">
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
+                  className="kpi-card-box"
                   style={{
                     backgroundColor: '#FFFFFF',
                     borderRadius: '18px',
@@ -1023,7 +1184,7 @@ export default function WebDashboardPage() {
                 <div style={{ width: '220px', height: '18px', backgroundColor: '#FDE68A', borderRadius: '6px', animation: 'pulse 1.5s infinite' }} />
                 <div style={{ width: '100px', height: '28px', backgroundColor: '#FFFBEB', borderRadius: '8px', animation: 'pulse 1.5s infinite' }} />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+              <div className="attention-grid">
                 {[1, 2].map((k) => (
                   <div key={k} style={{ height: '64px', backgroundColor: '#FFFBEB', borderRadius: '12px', animation: 'pulse 1.5s infinite' }} />
                 ))}
@@ -1031,7 +1192,7 @@ export default function WebDashboardPage() {
             </div>
 
             {/* Skeleton Table Card */}
-            <div style={{ backgroundColor: '#FFFFFF', borderRadius: '20px', border: '1px solid #E2E8F0', padding: '28px' }}>
+            <div style={{ backgroundColor: '#FFFFFF', borderRadius: '20px', border: '1px solid #E2E8F0', padding: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '30%' }}>
                   <div style={{ width: '80%', height: '20px', backgroundColor: '#E2E8F0', borderRadius: '6px', animation: 'pulse 1.5s infinite' }} />
@@ -1117,7 +1278,7 @@ export default function WebDashboardPage() {
                   </button>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '12px' }}>
+                <div className="attention-grid">
                   {urgentReminders.slice(0, 3).map((r) => (
                     <div
                       key={r.id}
@@ -1251,41 +1412,34 @@ export default function WebDashboardPage() {
             )}
 
             {/* KPI Row */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                gap: '16px',
-                marginBottom: '28px',
-              }}
-            >
-              <div style={{ backgroundColor: '#FFFFFF', borderRadius: '18px', padding: '20px', border: '1px solid #E2E8F0' }}>
-                <p style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>Total Assets</p>
-                <h2 style={{ fontSize: '28px', fontWeight: '800', marginTop: '6px', color: '#1E293B' }}>{assets.length}</h2>
+            <div className="kpi-grid">
+              <div className="kpi-card-box" style={{ backgroundColor: '#FFFFFF', borderRadius: '18px', padding: '20px', border: '1px solid #E2E8F0' }}>
+                <p className="kpi-card-label" style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>Total Assets</p>
+                <h2 className="kpi-card-num" style={{ fontSize: '28px', fontWeight: '800', marginTop: '6px', color: '#1E293B' }}>{assets.length}</h2>
                 <p style={{ fontSize: '12px', color: '#059669', marginTop: '4px', fontWeight: '700' }}>Live Portfolio</p>
               </div>
 
-              <div style={{ backgroundColor: '#FFFFFF', borderRadius: '18px', padding: '20px', border: '1px solid #E2E8F0' }}>
-                <p style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>Portfolio Valuation</p>
-                <h2 style={{ fontSize: '28px', fontWeight: '800', marginTop: '6px', color: '#1E293B' }}>{formatINR(totalValue)}</h2>
+              <div className="kpi-card-box" style={{ backgroundColor: '#FFFFFF', borderRadius: '18px', padding: '20px', border: '1px solid #E2E8F0' }}>
+                <p className="kpi-card-label" style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>Portfolio Valuation</p>
+                <h2 className="kpi-card-num" style={{ fontSize: '28px', fontWeight: '800', marginTop: '6px', color: '#1E293B' }}>{formatINR(totalValue)}</h2>
                 <p style={{ fontSize: '12px', color: '#059669', marginTop: '4px', fontWeight: '700' }}>Purchase Total</p>
               </div>
 
-              <div style={{ backgroundColor: '#FFFBEB', borderRadius: '18px', padding: '20px', border: '1px solid #FDE68A' }}>
-                <p style={{ fontSize: '12px', color: '#D97706', fontWeight: '600' }}>Pending Reminders</p>
-                <h2 style={{ fontSize: '28px', fontWeight: '800', marginTop: '6px', color: '#D97706' }}>{pendingReminders.length}</h2>
+              <div className="kpi-card-box" style={{ backgroundColor: '#FFFBEB', borderRadius: '18px', padding: '20px', border: '1px solid #FDE68A' }}>
+                <p className="kpi-card-label" style={{ fontSize: '12px', color: '#D97706', fontWeight: '600' }}>Pending Reminders</p>
+                <h2 className="kpi-card-num" style={{ fontSize: '28px', fontWeight: '800', marginTop: '6px', color: '#D97706' }}>{pendingReminders.length}</h2>
                 <p style={{ fontSize: '12px', color: '#B45309', marginTop: '4px' }}>Maintenance & Warranties</p>
               </div>
 
-              <div style={{ backgroundColor: '#ECFDF5', borderRadius: '18px', padding: '20px', border: '1px solid #A7F3D0' }}>
-                <p style={{ fontSize: '12px', color: '#059669', fontWeight: '600' }}>Maintenance Spend</p>
-                <h2 style={{ fontSize: '28px', fontWeight: '800', marginTop: '6px', color: '#059669' }}>{formatINR(totalMaintenance)}</h2>
+              <div className="kpi-card-box" style={{ backgroundColor: '#ECFDF5', borderRadius: '18px', padding: '20px', border: '1px solid #A7F3D0' }}>
+                <p className="kpi-card-label" style={{ fontSize: '12px', color: '#059669', fontWeight: '600' }}>Maintenance Spend</p>
+                <h2 className="kpi-card-num" style={{ fontSize: '28px', fontWeight: '800', marginTop: '6px', color: '#059669' }}>{formatINR(totalMaintenance)}</h2>
                 <p style={{ fontSize: '12px', color: '#047857', marginTop: '4px' }}>{services.length} Service records</p>
               </div>
             </div>
 
             {/* Tab Toggle Navigation */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+            <div className="tab-scroll-strip no-scrollbar">
               {[
                 { id: 'assets', label: 'Assets', count: assets.length, icon: Package },
                 { id: 'documents', label: 'Documents & Invoices', count: documents.length, icon: FileText },
@@ -1300,6 +1454,7 @@ export default function WebDashboardPage() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
+                    className="tab-btn"
                     style={{
                       padding: '10px 18px',
                       borderRadius: '12px',
@@ -1313,6 +1468,8 @@ export default function WebDashboardPage() {
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '8px',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
                     }}
                   >
                     <Icon size={16} />
@@ -1428,109 +1585,185 @@ export default function WebDashboardPage() {
                     </button>
                   </div>
                 ) : (
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                      <thead>
-                        <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
-                          <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Asset Name</th>
-                          <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Category</th>
-                          <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Brand / Model</th>
-                          <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Location</th>
-                          <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Purchase Value</th>
-                          <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Invoices / Docs</th>
-                          <th style={{ padding: '12px', fontSize: '13px', color: '#64748B', textAlign: 'right' }}>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredAssets.map((a) => (
-                          <tr key={a.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                            <td style={{ padding: '16px 12px', fontWeight: '700', fontSize: '14px', color: '#1E293B' }}>
+                  <>
+                    {/* Desktop Table View */}
+                    <div className="desktop-table-view" style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
+                            <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Asset Name</th>
+                            <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Category</th>
+                            <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Brand / Model</th>
+                            <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Location</th>
+                            <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Purchase Value</th>
+                            <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Invoices / Docs</th>
+                            <th style={{ padding: '12px', fontSize: '13px', color: '#64748B', textAlign: 'right' }}>Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredAssets.map((a) => (
+                            <tr key={a.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                              <td style={{ padding: '16px 12px', fontWeight: '700', fontSize: '14px', color: '#1E293B' }}>
+                                <span
+                                  onClick={() => setViewAssetId(a.id)}
+                                  style={{ cursor: 'pointer', color: '#1E293B', textDecoration: 'none' }}
+                                >
+                                  {a.name}
+                                </span>
+                              </td>
+                              <td style={{ padding: '16px 12px', color: '#64748B', fontSize: '14px' }}>{a.categoryId || a.category || 'General'}</td>
+                              <td style={{ padding: '16px 12px', color: '#64748B', fontSize: '14px' }}>{a.brand || ''} {a.model ? `(${a.model})` : ''}</td>
+                              <td style={{ padding: '16px 12px', color: '#64748B', fontSize: '14px' }}>{a.location || 'Home'}</td>
+                              <td style={{ padding: '16px 12px', fontWeight: '700', fontSize: '14px', color: '#1E293B' }}>{formatINR(a.purchasePrice || a.price || 0)}</td>
+                              <td style={{ padding: '16px 12px' }}>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: '700', backgroundColor: '#EEF0FF', color: '#5C4EBA' }}>
+                                  <Receipt size={13} /> {a.documentsCount || 1}
+                                </span>
+                              </td>
+                              <td style={{ padding: '16px 12px', textAlign: 'right' }}>
+                                <div style={{ display: 'inline-flex', gap: '6px' }}>
+                                  <button
+                                    onClick={() => setViewAssetId(a.id)}
+                                    title="View Asset Details"
+                                    style={{
+                                      padding: '6px 10px',
+                                      borderRadius: '8px',
+                                      border: '1px solid #CBD5E1',
+                                      backgroundColor: '#FFFFFF',
+                                      color: '#334155',
+                                      fontSize: '12px',
+                                      fontWeight: '600',
+                                      cursor: 'pointer',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                    }}
+                                  >
+                                    <Eye size={12} /> View
+                                  </button>
+                                  <button
+                                    onClick={() => setEditAsset(a)}
+                                    title="Edit Asset"
+                                    style={{
+                                      padding: '6px 10px',
+                                      borderRadius: '8px',
+                                      border: 'none',
+                                      backgroundColor: '#EEF0FF',
+                                      color: '#5C4EBA',
+                                      fontSize: '12px',
+                                      fontWeight: '700',
+                                      cursor: 'pointer',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '4px',
+                                    }}
+                                  >
+                                    <Pencil size={12} /> Edit
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      if (confirm(`Delete asset "${a.name}"?`)) {
+                                        handleDeleteAsset(a.id, a.name);
+                                      }
+                                    }}
+                                    disabled={deletingId === a.id}
+                                    title="Delete Asset"
+                                    style={{
+                                      padding: '6px 8px',
+                                      borderRadius: '8px',
+                                      border: 'none',
+                                      backgroundColor: '#FEF2F2',
+                                      color: '#DC2626',
+                                      fontSize: '12px',
+                                      fontWeight: '700',
+                                      cursor: deletingId === a.id ? 'not-allowed' : 'pointer',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                    }}
+                                  >
+                                    {deletingId === a.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Mobile Card View */}
+                    <div className="mobile-card-view">
+                      {filteredAssets.map((a) => (
+                        <div
+                          key={a.id}
+                          style={{
+                            backgroundColor: '#FFFFFF',
+                            border: '1px solid #E2E8F0',
+                            borderRadius: '14px',
+                            padding: '14px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '10px',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div>
                               <span
                                 onClick={() => setViewAssetId(a.id)}
-                                style={{ cursor: 'pointer', color: '#1E293B', textDecoration: 'none' }}
+                                style={{ fontSize: '15px', fontWeight: '800', color: '#1E293B', cursor: 'pointer' }}
                               >
                                 {a.name}
                               </span>
-                            </td>
-                            <td style={{ padding: '16px 12px', color: '#64748B', fontSize: '14px' }}>{a.categoryId || a.category || 'General'}</td>
-                            <td style={{ padding: '16px 12px', color: '#64748B', fontSize: '14px' }}>{a.brand || ''} {a.model ? `(${a.model})` : ''}</td>
-                            <td style={{ padding: '16px 12px', color: '#64748B', fontSize: '14px' }}>{a.location || 'Home'}</td>
-                            <td style={{ padding: '16px 12px', fontWeight: '700', fontSize: '14px', color: '#1E293B' }}>{formatINR(a.purchasePrice || a.price || 0)}</td>
-                            <td style={{ padding: '16px 12px' }}>
-                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: '700', backgroundColor: '#EEF0FF', color: '#5C4EBA' }}>
-                                <Receipt size={13} /> {a.documentsCount || 1}
+                              <p style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
+                                {a.brand || ''} {a.model ? `• ${a.model}` : ''} {a.location ? `• ${a.location}` : ''}
+                              </p>
+                            </div>
+                            <span style={{ fontSize: '15px', fontWeight: '800', color: '#1E293B' }}>
+                              {formatINR(a.purchasePrice || a.price || 0)}
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #F1F5F9', paddingTop: '8px' }}>
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                              <span style={{ fontSize: '11px', fontWeight: '700', padding: '3px 8px', borderRadius: '6px', backgroundColor: '#F1F5F9', color: '#475569' }}>
+                                {a.categoryId || a.category || 'General'}
                               </span>
-                            </td>
-                            <td style={{ padding: '16px 12px', textAlign: 'right' }}>
-                              <div style={{ display: 'inline-flex', gap: '6px' }}>
-                                <button
-                                  onClick={() => setViewAssetId(a.id)}
-                                  title="View Asset Details"
-                                  style={{
-                                    padding: '6px 10px',
-                                    borderRadius: '8px',
-                                    border: '1px solid #CBD5E1',
-                                    backgroundColor: '#FFFFFF',
-                                    color: '#334155',
-                                    fontSize: '12px',
-                                    fontWeight: '600',
-                                    cursor: 'pointer',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                  }}
-                                >
-                                  <Eye size={12} /> View
-                                </button>
-                                <button
-                                  onClick={() => setEditAsset(a)}
-                                  title="Edit Asset"
-                                  style={{
-                                    padding: '6px 10px',
-                                    borderRadius: '8px',
-                                    border: 'none',
-                                    backgroundColor: '#EEF0FF',
-                                    color: '#5C4EBA',
-                                    fontSize: '12px',
-                                    fontWeight: '700',
-                                    cursor: 'pointer',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '4px',
-                                  }}
-                                >
-                                  <Pencil size={12} /> Edit
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    if (confirm(`Delete asset "${a.name}"?`)) {
-                                      handleDeleteAsset(a.id, a.name);
-                                    }
-                                  }}
-                                  disabled={deletingId === a.id}
-                                  title="Delete Asset"
-                                  style={{
-                                    padding: '6px 8px',
-                                    borderRadius: '8px',
-                                    border: 'none',
-                                    backgroundColor: '#FEF2F2',
-                                    color: '#DC2626',
-                                    fontSize: '12px',
-                                    fontWeight: '700',
-                                    cursor: deletingId === a.id ? 'not-allowed' : 'pointer',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                  }}
-                                >
-                                  {deletingId === a.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '11px', fontWeight: '700', padding: '3px 8px', borderRadius: '6px', backgroundColor: '#EEF0FF', color: '#5C4EBA' }}>
+                                <Receipt size={11} /> {a.documentsCount || 1} doc
+                              </span>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <button
+                                onClick={() => setViewAssetId(a.id)}
+                                style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid #CBD5E1', backgroundColor: '#FFFFFF', fontSize: '11px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                              >
+                                <Eye size={11} /> View
+                              </button>
+                              <button
+                                onClick={() => setEditAsset(a)}
+                                style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', backgroundColor: '#EEF0FF', color: '#5C4EBA', fontSize: '11px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                              >
+                                <Pencil size={11} /> Edit
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (confirm(`Delete asset "${a.name}"?`)) {
+                                    handleDeleteAsset(a.id, a.name);
+                                  }
+                                }}
+                                disabled={deletingId === a.id}
+                                style={{ padding: '5px 7px', borderRadius: '6px', border: 'none', backgroundColor: '#FEF2F2', color: '#DC2626', fontSize: '11px', fontWeight: '700' }}
+                              >
+                                {deletingId === a.id ? <Loader2 size={11} className="animate-spin" /> : <Trash2 size={11} />}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 )}
               </section>
             )}
@@ -1538,7 +1771,7 @@ export default function WebDashboardPage() {
         {/* 2. DOCUMENTS & INVOICES TAB VIEW */}
         {activeTab === 'documents' && (
           <section style={{ backgroundColor: '#FFFFFF', borderRadius: '20px', border: '1px solid #E2E8F0', padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
               <div>
                 <h3 style={{ fontSize: '17px', fontWeight: '800', color: '#1E293B' }}>Documents & Invoices</h3>
                 <p style={{ fontSize: '13px', color: '#64748B', marginTop: '2px' }}>Purchase receipts, warranty cards, manuals, and insurance policies</p>
@@ -1566,129 +1799,207 @@ export default function WebDashboardPage() {
                 </button>
               </div>
             ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
-                      <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Document Title</th>
-                      <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Type</th>
-                      <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Linked Asset</th>
-                      <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>File Name</th>
-                      <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Date</th>
-                      <th style={{ padding: '12px', fontSize: '13px', color: '#64748B', textAlign: 'right' }}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {documents.map((doc) => (
-                      <tr key={doc.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                        <td style={{ padding: '16px 12px', fontWeight: '700', fontSize: '14px', color: '#1E293B' }}>
-                          <span
-                            onClick={() => setViewDocument(doc)}
-                            style={{ cursor: 'pointer', color: '#1E293B', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                          >
-                            {doc.type === 'invoice' ? <Receipt size={15} color="#059669" /> : <FileText size={15} color="#5C4EBA" />}
-                            <span>{doc.name}</span>
-                          </span>
-                        </td>
-                        <td style={{ padding: '16px 12px' }}>
-                          <span style={{ display: 'inline-block', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '700', backgroundColor: doc.type === 'invoice' ? '#ECFDF5' : '#EEF0FF', color: doc.type === 'invoice' ? '#059669' : '#5C4EBA', textTransform: 'uppercase' }}>
-                            {doc.type}
-                          </span>
-                        </td>
-                        <td style={{ padding: '16px 12px', color: '#64748B', fontSize: '14px', fontWeight: '600' }}>{doc.assetName || 'General'}</td>
-                        <td style={{ padding: '16px 12px', color: '#64748B', fontSize: '13px' }}>{doc.fileName}</td>
-                        <td style={{ padding: '16px 12px', color: '#64748B', fontSize: '13px' }}>{doc.date || 'Recent'}</td>
-                        <td style={{ padding: '16px 12px', textAlign: 'right' }}>
-                          <div style={{ display: 'inline-flex', gap: '6px' }}>
-                            <button
-                              onClick={() => setViewDocument(doc)}
-                              title="View Document Details"
-                              style={{
-                                padding: '6px 10px',
-                                borderRadius: '8px',
-                                border: '1px solid #CBD5E1',
-                                backgroundColor: '#FFFFFF',
-                                color: '#334155',
-                                fontSize: '12px',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                              }}
-                            >
-                              <Eye size={12} /> View
-                            </button>
-                            <a
-                              href={doc.fileUrl && !doc.fileUrl.includes('example.com') && !doc.fileUrl.includes('placehold.co') ? (doc.fileUrl.startsWith('http') ? doc.fileUrl : buildApiUrl(doc.fileUrl)) : buildApiUrl(API_ENDPOINTS.DOCUMENTS.FILE(doc.id))}
-                              target="_blank"
-                              rel="noreferrer"
-                              title="Open Raw File"
-                              style={{
-                                padding: '6px 10px',
-                                borderRadius: '8px',
-                                border: '1px solid #E2E8F0',
-                                backgroundColor: '#F8F9FD',
-                                color: '#5C4EBA',
-                                fontSize: '12px',
-                                fontWeight: '700',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                textDecoration: 'none',
-                              }}
-                            >
-                              <ExternalLink size={12} /> Open
-                            </a>
-                            <button
-                              onClick={() => setEditDocument(doc)}
-                              title="Edit Document"
-                              style={{
-                                padding: '6px 10px',
-                                borderRadius: '8px',
-                                border: 'none',
-                                backgroundColor: '#EEF0FF',
-                                color: '#5C4EBA',
-                                fontSize: '12px',
-                                fontWeight: '700',
-                                cursor: 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                              }}
-                            >
-                              <Pencil size={12} /> Edit
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (confirm(`Delete document "${doc.name}"?`)) {
-                                  handleDeleteDocument(doc.id, doc.name);
-                                }
-                              }}
-                              disabled={deletingId === doc.id}
-                              title="Delete Document"
-                              style={{
-                                padding: '6px 8px',
-                                borderRadius: '8px',
-                                border: 'none',
-                                backgroundColor: '#FEF2F2',
-                                color: '#DC2626',
-                                fontSize: '12px',
-                                fontWeight: '700',
-                                cursor: deletingId === doc.id ? 'not-allowed' : 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                              }}
-                            >
-                              {deletingId === doc.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
-                            </button>
-                          </div>
-                        </td>
+              <>
+                {/* Desktop Table View */}
+                <div className="desktop-table-view" style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
+                        <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Document Title</th>
+                        <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Type</th>
+                        <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Linked Asset</th>
+                        <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>File Name</th>
+                        <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Date</th>
+                        <th style={{ padding: '12px', fontSize: '13px', color: '#64748B', textAlign: 'right' }}>Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {documents.map((doc) => (
+                        <tr key={doc.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                          <td style={{ padding: '16px 12px', fontWeight: '700', fontSize: '14px', color: '#1E293B' }}>
+                            <span
+                              onClick={() => setViewDocument(doc)}
+                              style={{ cursor: 'pointer', color: '#1E293B', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                            >
+                              {doc.type === 'invoice' ? <Receipt size={15} color="#059669" /> : <FileText size={15} color="#5C4EBA" />}
+                              <span>{doc.name}</span>
+                            </span>
+                          </td>
+                          <td style={{ padding: '16px 12px' }}>
+                            <span style={{ display: 'inline-block', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '700', backgroundColor: doc.type === 'invoice' ? '#ECFDF5' : '#EEF0FF', color: doc.type === 'invoice' ? '#059669' : '#5C4EBA', textTransform: 'uppercase' }}>
+                              {doc.type}
+                            </span>
+                          </td>
+                          <td style={{ padding: '16px 12px', color: '#64748B', fontSize: '14px', fontWeight: '600' }}>{doc.assetName || 'General'}</td>
+                          <td style={{ padding: '16px 12px', color: '#64748B', fontSize: '13px' }}>{doc.fileName}</td>
+                          <td style={{ padding: '16px 12px', color: '#64748B', fontSize: '13px' }}>{doc.date || 'Recent'}</td>
+                          <td style={{ padding: '16px 12px', textAlign: 'right' }}>
+                            <div style={{ display: 'inline-flex', gap: '6px' }}>
+                              <button
+                                onClick={() => setViewDocument(doc)}
+                                title="View Document Details"
+                                style={{
+                                  padding: '6px 10px',
+                                  borderRadius: '8px',
+                                  border: '1px solid #CBD5E1',
+                                  backgroundColor: '#FFFFFF',
+                                  color: '#334155',
+                                  fontSize: '12px',
+                                  fontWeight: '600',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
+                              >
+                                <Eye size={12} /> View
+                              </button>
+                              <a
+                                href={doc.fileUrl && !doc.fileUrl.includes('example.com') && !doc.fileUrl.includes('placehold.co') ? (doc.fileUrl.startsWith('http') ? doc.fileUrl : buildApiUrl(doc.fileUrl)) : buildApiUrl(API_ENDPOINTS.DOCUMENTS.FILE(doc.id))}
+                                target="_blank"
+                                rel="noreferrer"
+                                title="Open Raw File"
+                                style={{
+                                  padding: '6px 10px',
+                                  borderRadius: '8px',
+                                  border: '1px solid #E2E8F0',
+                                  backgroundColor: '#F8F9FD',
+                                  color: '#5C4EBA',
+                                  fontSize: '12px',
+                                  fontWeight: '700',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  textDecoration: 'none',
+                                }}
+                              >
+                                <ExternalLink size={12} /> Open
+                              </a>
+                              <button
+                                onClick={() => setEditDocument(doc)}
+                                title="Edit Document"
+                                style={{
+                                  padding: '6px 10px',
+                                  borderRadius: '8px',
+                                  border: 'none',
+                                  backgroundColor: '#EEF0FF',
+                                  color: '#5C4EBA',
+                                  fontSize: '12px',
+                                  fontWeight: '700',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
+                              >
+                                <Pencil size={12} /> Edit
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (confirm(`Delete document "${doc.name}"?`)) {
+                                    handleDeleteDocument(doc.id, doc.name);
+                                  }
+                                }}
+                                disabled={deletingId === doc.id}
+                                title="Delete Document"
+                                style={{
+                                  padding: '6px 8px',
+                                  borderRadius: '8px',
+                                  border: 'none',
+                                  backgroundColor: '#FEF2F2',
+                                  color: '#DC2626',
+                                  fontSize: '12px',
+                                  fontWeight: '700',
+                                  cursor: deletingId === doc.id ? 'not-allowed' : 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                }}
+                              >
+                                {deletingId === doc.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="mobile-card-view">
+                  {documents.map((doc) => (
+                    <div
+                      key={doc.id}
+                      style={{
+                        backgroundColor: '#FFFFFF',
+                        border: '1px solid #E2E8F0',
+                        borderRadius: '14px',
+                        padding: '14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <span
+                          onClick={() => setViewDocument(doc)}
+                          style={{ fontSize: '15px', fontWeight: '800', color: '#1E293B', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                        >
+                          {doc.type === 'invoice' ? <Receipt size={15} color="#059669" /> : <FileText size={15} color="#5C4EBA" />}
+                          <span>{doc.name}</span>
+                        </span>
+                        <span style={{ display: 'inline-block', padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '700', backgroundColor: doc.type === 'invoice' ? '#ECFDF5' : '#EEF0FF', color: doc.type === 'invoice' ? '#059669' : '#5C4EBA', textTransform: 'uppercase' }}>
+                          {doc.type}
+                        </span>
+                      </div>
+
+                      <p style={{ fontSize: '12px', color: '#64748B' }}>
+                        Linked: <strong>{doc.assetName || 'General'}</strong> • {doc.date || 'Recent'}
+                      </p>
+
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #F1F5F9', paddingTop: '8px' }}>
+                        <span style={{ fontSize: '11px', color: '#94A3B8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px' }}>
+                          {doc.fileName}
+                        </span>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button
+                            onClick={() => setViewDocument(doc)}
+                            style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid #CBD5E1', backgroundColor: '#FFFFFF', fontSize: '11px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                          >
+                            <Eye size={11} /> View
+                          </button>
+                          <a
+                            href={doc.fileUrl && !doc.fileUrl.includes('example.com') && !doc.fileUrl.includes('placehold.co') ? (doc.fileUrl.startsWith('http') ? doc.fileUrl : buildApiUrl(doc.fileUrl)) : buildApiUrl(API_ENDPOINTS.DOCUMENTS.FILE(doc.id))}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid #E2E8F0', backgroundColor: '#F8F9FD', color: '#5C4EBA', fontSize: '11px', fontWeight: '700', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                          >
+                            <ExternalLink size={11} /> Open
+                          </a>
+                          <button
+                            onClick={() => setEditDocument(doc)}
+                            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', backgroundColor: '#EEF0FF', color: '#5C4EBA', fontSize: '11px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                          >
+                            <Pencil size={11} /> Edit
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm(`Delete document "${doc.name}"?`)) {
+                                handleDeleteDocument(doc.id, doc.name);
+                              }
+                            }}
+                            disabled={deletingId === doc.id}
+                            style={{ padding: '5px 7px', borderRadius: '6px', border: 'none', backgroundColor: '#FEF2F2', color: '#DC2626', fontSize: '11px', fontWeight: '700' }}
+                          >
+                            {deletingId === doc.id ? <Loader2 size={11} className="animate-spin" /> : <Trash2 size={11} />}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </section>
         )}
@@ -1696,7 +2007,7 @@ export default function WebDashboardPage() {
         {/* 3. REMINDERS TAB VIEW */}
         {activeTab === 'reminders' && (
           <section style={{ backgroundColor: '#FFFFFF', borderRadius: '20px', border: '1px solid #E2E8F0', padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
               <div>
                 <h3 style={{ fontSize: '17px', fontWeight: '800', color: '#1E293B' }}>Central Reminders & Expiries</h3>
                 <p style={{ fontSize: '13px', color: '#64748B', marginTop: '2px' }}>
@@ -1738,10 +2049,12 @@ export default function WebDashboardPage() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '12px',
                       opacity: r.status === 'completed' ? 0.6 : 1,
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: '1 1 240px' }}>
                       <div
                         style={{
                           width: '40px',
@@ -1751,6 +2064,7 @@ export default function WebDashboardPage() {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
+                          flexShrink: 0,
                         }}
                       >
                         {r.type === 'warranty' ? <Shield size={20} color="#5C4EBA" /> : <Wrench size={20} color="#D97706" />}
@@ -1768,7 +2082,7 @@ export default function WebDashboardPage() {
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                       <button
                         onClick={() => setViewReminder(r)}
                         style={{
@@ -1813,7 +2127,7 @@ export default function WebDashboardPage() {
                             onClick={() => handleReminderAction(r.id, 'snooze')}
                             disabled={actionReminderId === r.id}
                             style={{
-                              padding: '6px 12px',
+                              padding: '6px 10px',
                               borderRadius: '8px',
                               border: '1px solid #CBD5E1',
                               backgroundColor: '#FFFFFF',
@@ -1832,7 +2146,7 @@ export default function WebDashboardPage() {
                             onClick={() => handleReminderAction(r.id, 'complete')}
                             disabled={actionReminderId === r.id}
                             style={{
-                              padding: '6px 12px',
+                              padding: '6px 10px',
                               borderRadius: '8px',
                               border: 'none',
                               backgroundColor: '#ECFDF5',
@@ -1845,7 +2159,7 @@ export default function WebDashboardPage() {
                               gap: '4px',
                             }}
                           >
-                            {actionReminderId === r.id ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />} Complete
+                            {actionReminderId === r.id ? <Loader2 size={12} className="animate-spin" /> : <Check size={12} />} Done
                           </button>
                         </>
                       )}
@@ -1883,7 +2197,7 @@ export default function WebDashboardPage() {
         {/* 4. SERVICES & MAINTENANCE TAB VIEW */}
         {activeTab === 'services' && (
           <section style={{ backgroundColor: '#FFFFFF', borderRadius: '20px', border: '1px solid #E2E8F0', padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
               <div>
                 <h3 style={{ fontSize: '17px', fontWeight: '800', color: '#1E293B' }}>Service & Maintenance Log</h3>
                 <p style={{ fontSize: '13px', color: '#64748B', marginTop: '2px' }}>Historical maintenance spend and technician records</p>
@@ -1911,112 +2225,188 @@ export default function WebDashboardPage() {
                 </button>
               </div>
             ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
-                      <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Service Title</th>
-                      <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Asset</th>
-                      <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Provider / Technician</th>
-                      <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Cost</th>
-                      <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Date</th>
-                      <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Next Due</th>
-                      <th style={{ padding: '12px', fontSize: '13px', color: '#64748B', textAlign: 'right' }}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {services.map((s) => (
-                      <tr key={s.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                        <td style={{ padding: '16px 12px', fontWeight: '700', fontSize: '14px', color: '#1E293B' }}>
+              <>
+                {/* Desktop Table View */}
+                <div className="desktop-table-view" style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
+                        <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Service Title</th>
+                        <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Asset</th>
+                        <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Provider / Technician</th>
+                        <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Cost</th>
+                        <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Date</th>
+                        <th style={{ padding: '12px', fontSize: '13px', color: '#64748B' }}>Next Due</th>
+                        <th style={{ padding: '12px', fontSize: '13px', color: '#64748B', textAlign: 'right' }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {services.map((s) => (
+                        <tr key={s.id} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                          <td style={{ padding: '16px 12px', fontWeight: '700', fontSize: '14px', color: '#1E293B' }}>
+                            <span
+                              onClick={() => setViewService(s)}
+                              style={{ cursor: 'pointer', color: '#1E293B' }}
+                            >
+                              {s.title}
+                            </span>
+                          </td>
+                          <td style={{ padding: '16px 12px', color: '#64748B', fontSize: '14px' }}>{s.assetName}</td>
+                          <td style={{ padding: '16px 12px', color: '#64748B', fontSize: '14px' }}>{s.serviceProvider || 'Authorized'}</td>
+                          <td style={{ padding: '16px 12px', fontWeight: '700', fontSize: '14px', color: '#059669' }}>{formatINR(s.cost)}</td>
+                          <td style={{ padding: '16px 12px', color: '#64748B', fontSize: '13px' }}>{s.serviceDate}</td>
+                          <td style={{ padding: '16px 12px', color: '#5C4EBA', fontSize: '13px', fontWeight: '600' }}>{s.nextDueDate || '-'}</td>
+                          <td style={{ padding: '16px 12px', textAlign: 'right' }}>
+                            <div style={{ display: 'inline-flex', gap: '6px' }}>
+                              <button
+                                onClick={() => setViewService(s)}
+                                title="View Service Details"
+                                style={{
+                                  padding: '6px 10px',
+                                  borderRadius: '8px',
+                                  border: '1px solid #CBD5E1',
+                                  backgroundColor: '#FFFFFF',
+                                  color: '#334155',
+                                  fontSize: '12px',
+                                  fontWeight: '600',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
+                              >
+                                <Eye size={12} /> View
+                              </button>
+                              <button
+                                onClick={() => setEditService(s)}
+                                title="Edit Service Record"
+                                style={{
+                                  padding: '6px 10px',
+                                  borderRadius: '8px',
+                                  border: 'none',
+                                  backgroundColor: '#FFFBEB',
+                                  color: '#D97706',
+                                  fontSize: '12px',
+                                  fontWeight: '700',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
+                              >
+                                <Pencil size={12} /> Edit
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (confirm(`Delete service record "${s.title}"?`)) {
+                                    handleDeleteService(s.id, s.title);
+                                  }
+                                }}
+                                disabled={deletingId === s.id}
+                                title="Delete Service"
+                                style={{
+                                  padding: '6px 8px',
+                                  borderRadius: '8px',
+                                  border: 'none',
+                                  backgroundColor: '#FEF2F2',
+                                  color: '#DC2626',
+                                  fontSize: '12px',
+                                  fontWeight: '700',
+                                  cursor: deletingId === s.id ? 'not-allowed' : 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                }}
+                              >
+                                {deletingId === s.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="mobile-card-view">
+                  {services.map((s) => (
+                    <div
+                      key={s.id}
+                      style={{
+                        backgroundColor: '#FFFFFF',
+                        border: '1px solid #E2E8F0',
+                        borderRadius: '14px',
+                        padding: '14px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '10px',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div>
                           <span
                             onClick={() => setViewService(s)}
-                            style={{ cursor: 'pointer', color: '#1E293B' }}
+                            style={{ fontSize: '15px', fontWeight: '800', color: '#1E293B', cursor: 'pointer' }}
                           >
                             {s.title}
                           </span>
-                        </td>
-                        <td style={{ padding: '16px 12px', color: '#64748B', fontSize: '14px' }}>{s.assetName}</td>
-                        <td style={{ padding: '16px 12px', color: '#64748B', fontSize: '14px' }}>{s.serviceProvider || 'Authorized'}</td>
-                        <td style={{ padding: '16px 12px', fontWeight: '700', fontSize: '14px', color: '#059669' }}>{formatINR(s.cost)}</td>
-                        <td style={{ padding: '16px 12px', color: '#64748B', fontSize: '13px' }}>{s.serviceDate}</td>
-                        <td style={{ padding: '16px 12px', color: '#5C4EBA', fontSize: '13px', fontWeight: '600' }}>{s.nextDueDate || '-'}</td>
-                        <td style={{ padding: '16px 12px', textAlign: 'right' }}>
-                          <div style={{ display: 'inline-flex', gap: '6px' }}>
-                            <button
-                              onClick={() => setViewService(s)}
-                              title="View Service Details"
-                              style={{
-                                padding: '6px 10px',
-                                borderRadius: '8px',
-                                border: '1px solid #CBD5E1',
-                                backgroundColor: '#FFFFFF',
-                                color: '#334155',
-                                fontSize: '12px',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                              }}
-                            >
-                              <Eye size={12} /> View
-                            </button>
-                            <button
-                              onClick={() => setEditService(s)}
-                              title="Edit Service Record"
-                              style={{
-                                padding: '6px 10px',
-                                borderRadius: '8px',
-                                border: 'none',
-                                backgroundColor: '#FFFBEB',
-                                color: '#D97706',
-                                fontSize: '12px',
-                                fontWeight: '700',
-                                cursor: 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                              }}
-                            >
-                              <Pencil size={12} /> Edit
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (confirm(`Delete service record "${s.title}"?`)) {
-                                  handleDeleteService(s.id, s.title);
-                                }
-                              }}
-                              disabled={deletingId === s.id}
-                              title="Delete Service"
-                              style={{
-                                padding: '6px 8px',
-                                borderRadius: '8px',
-                                border: 'none',
-                                backgroundColor: '#FEF2F2',
-                                color: '#DC2626',
-                                fontSize: '12px',
-                                fontWeight: '700',
-                                cursor: deletingId === s.id ? 'not-allowed' : 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                              }}
-                            >
-                              {deletingId === s.id ? <Loader2 size={13} className="animate-spin" /> : <Trash2 size={13} />}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                          <p style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
+                            {s.assetName} • {s.serviceProvider || 'Authorized Service'}
+                          </p>
+                        </div>
+                        <span style={{ fontSize: '15px', fontWeight: '800', color: '#059669' }}>
+                          {formatINR(s.cost)}
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid #F1F5F9', paddingTop: '8px' }}>
+                        <div style={{ fontSize: '11px', color: '#64748B' }}>
+                          <span>Date: <strong>{s.serviceDate || 'Recent'}</strong></span>
+                          {s.nextDueDate && (
+                            <span style={{ marginLeft: '6px', color: '#5C4EBA', fontWeight: '700' }}>
+                              Next: {s.nextDueDate}
+                            </span>
+                          )}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button
+                            onClick={() => setViewService(s)}
+                            style={{ padding: '5px 8px', borderRadius: '6px', border: '1px solid #CBD5E1', backgroundColor: '#FFFFFF', fontSize: '11px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                          >
+                            <Eye size={11} /> View
+                          </button>
+                          <button
+                            onClick={() => setEditService(s)}
+                            style={{ padding: '5px 8px', borderRadius: '6px', border: 'none', backgroundColor: '#FFFBEB', color: '#D97706', fontSize: '11px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '3px' }}
+                          >
+                            <Pencil size={11} /> Edit
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm(`Delete service record "${s.title}"?`)) {
+                                handleDeleteService(s.id, s.title);
+                              }
+                            }}
+                            disabled={deletingId === s.id}
+                            style={{ padding: '5px 7px', borderRadius: '6px', border: 'none', backgroundColor: '#FEF2F2', color: '#DC2626', fontSize: '11px', fontWeight: '700' }}
+                          >
+                            {deletingId === s.id ? <Loader2 size={11} className="animate-spin" /> : <Trash2 size={11} />}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </section>
         )}
 
         {/* 5. ANALYTICS TAB VIEW */}
         {activeTab === 'analytics' && (
-          <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+          <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
             <div style={{ backgroundColor: '#FFFFFF', borderRadius: '20px', border: '1px solid #E2E8F0', padding: '24px' }}>
               <h3 style={{ fontSize: '17px', fontWeight: '800', color: '#1E293B', marginBottom: '16px' }}>Category Distribution</h3>
               {analytics?.categories?.length > 0 ? (
@@ -2077,6 +2467,7 @@ export default function WebDashboardPage() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       color: '#FFFFFF',
+                      flexShrink: 0,
                     }}
                   >
                     <Home size={28} />
@@ -2172,7 +2563,7 @@ export default function WebDashboardPage() {
 
             {/* Members Table */}
             <div style={{ backgroundColor: '#FFFFFF', borderRadius: '20px', border: '1px solid #E2E8F0', padding: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
                 <div>
                   <h3 style={{ fontSize: '17px', fontWeight: '800', color: '#1E293B' }}>Household Members & Permissions</h3>
                   <p style={{ fontSize: '13px', color: '#64748B', marginTop: '2px' }}>
@@ -2181,7 +2572,8 @@ export default function WebDashboardPage() {
                 </div>
               </div>
 
-              <div style={{ overflowX: 'auto' }}>
+              {/* Desktop Table View */}
+              <div className="desktop-table-view" style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
@@ -2302,6 +2694,106 @@ export default function WebDashboardPage() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="mobile-card-view">
+                {household?.members?.map((m: any) => (
+                  <div
+                    key={m.id}
+                    style={{
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #E2E8F0',
+                      borderRadius: '14px',
+                      padding: '14px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '10px',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div
+                          style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            backgroundColor: '#EEF0FF',
+                            color: '#5C4EBA',
+                            fontWeight: '800',
+                            fontSize: '13px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          {m.initials || m.name.slice(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                          <p style={{ fontWeight: '700', fontSize: '14px', color: '#1E293B' }}>{m.name}</p>
+                          <p style={{ fontSize: '11px', color: '#64748B' }}>{m.emailOrPhone}</p>
+                        </div>
+                      </div>
+
+                      {m.role === 'Owner' ? (
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', padding: '3px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: '800', backgroundColor: '#ECFDF5', color: '#059669' }}>
+                          <Crown size={11} /> Owner
+                        </span>
+                      ) : (
+                        <select
+                          value={m.role}
+                          disabled={isUpdatingMemberId === m.id}
+                          onChange={(e) => handleHouseholdMemberRole(m.id, e.target.value)}
+                          style={{
+                            padding: '4px 8px',
+                            borderRadius: '6px',
+                            border: '1px solid #CBD5E1',
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            color: '#334155',
+                            backgroundColor: '#F8F9FD',
+                            outline: 'none',
+                          }}
+                        >
+                          <option value="Admin">Admin</option>
+                          <option value="Member">Member</option>
+                          <option value="Viewer">Viewer</option>
+                        </select>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #F1F5F9', paddingTop: '8px' }}>
+                      <span style={{ fontSize: '11px', color: '#64748B' }}>
+                        Joined: {m.joinedDate || 'Recently'} • Status: <strong style={{ color: m.status === 'active' ? '#059669' : '#D97706' }}>{m.status || 'active'}</strong>
+                      </span>
+                      {m.role !== 'Owner' && (
+                        <button
+                          onClick={() => {
+                            if (confirm(`Remove member "${m.name}" from household?`)) {
+                              handleRemoveHouseholdMember(m.id, m.name);
+                            }
+                          }}
+                          disabled={isUpdatingMemberId === m.id}
+                          style={{
+                            padding: '5px 8px',
+                            borderRadius: '6px',
+                            border: 'none',
+                            backgroundColor: '#FEF2F2',
+                            color: '#DC2626',
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <Trash2 size={12} /> Remove
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

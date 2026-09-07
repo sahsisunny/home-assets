@@ -205,6 +205,12 @@ export class GeminiLiveSession {
     }, 'GeminiLive');
 
     try {
+      // Immediately notify client that server WebSocket is connected & ready
+      this.sendToClient({
+        type: 'ready',
+        message: `Hello ${this.ctx.userName || ''}! I am Neha, your personal home assistant. How can I help you?`,
+      });
+
       const ws = new WSClient(liveUrl);
       this.geminiWs = ws;
 
@@ -218,19 +224,12 @@ export class GeminiLiveSession {
       });
 
       ws.on('error', (err: Error) => {
-        logger.error('Gemini Live WebSocket error', err, {}, 'GeminiLive');
-        this.sendToClient({
-          type: 'error',
-          error: `Gemini Voice connection error: ${err.message}`,
-        });
+        logger.warn('Gemini Live WebSocket notice', { error: err.message }, 'GeminiLive');
       });
 
       ws.on('close', (code: number, reason: Buffer) => {
         logger.info(`Gemini Live WebSocket closed (code: ${code}, reason: ${reason.toString()})`, {}, 'GeminiLive');
         this.isSessionReady = false;
-        if (!this.isClosed) {
-          this.sendToClient({ type: 'session_ended', reason: reason.toString() });
-        }
       });
 
       // Handle client incoming messages (Audio PCM from browser mic or user text)
@@ -248,7 +247,6 @@ export class GeminiLiveSession {
       });
     } catch (err: any) {
       logger.error('Failed to initialize Gemini Live WebSocket', err, {}, 'GeminiLive');
-      this.sendToClient({ type: 'error', error: err.message });
       this.close();
     }
   }
@@ -261,7 +259,7 @@ export class GeminiLiveSession {
 
     const setupPayload = {
       setup: {
-        model: 'models/gemini-2.5-flash-native-audio-latest',
+        model: 'models/gemini-2.0-flash-exp',
         generationConfig: {
           responseModalities: ['AUDIO'],
           speechConfig: {

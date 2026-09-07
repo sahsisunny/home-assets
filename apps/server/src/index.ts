@@ -92,88 +92,109 @@ const server = http.createServer(app);
 const wss = new WSServer({ noServer: true });
 
 server.on('upgrade', (request, socket, head) => {
-  const url = new URL(request.url || '', `http://${request.headers.host || 'localhost'}`);
-  const pathname = url.pathname;
+  try {
+    const url = new URL(request.url || '', `http://${request.headers.host || 'localhost'}`);
+    const pathname = url.pathname.replace(/\/+$/, '');
 
-  if (pathname === '/api/voice/ws' || pathname === '/voice/ws' || pathname === '/ws/voice') {
-    wss.handleUpgrade(request, socket, head, (ws: any) => {
-      wss.emit('connection', ws, request);
-    });
-  } else {
+    if (
+      pathname === '/api/voice/ws' ||
+      pathname === '/voice/ws' ||
+      pathname === '/ws/voice' ||
+      pathname === '/ws' ||
+      pathname.endsWith('/voice/ws')
+    ) {
+      wss.handleUpgrade(request, socket, head, (ws: any) => {
+        wss.emit('connection', ws, request);
+      });
+    } else {
+      socket.destroy();
+    }
+  } catch (err) {
+    logger.error('Error in HTTP server upgrade handler', err, {}, 'Server');
     socket.destroy();
   }
 });
 
 wss.on('connection', async (ws: WebSocket, req: http.IncomingMessage) => {
-  const url = new URL(req.url || '', `http://${req.headers.host || 'localhost'}`);
-  const token = url.searchParams.get('token') || (req.headers['authorization'] as string) || (req.headers['sec-websocket-protocol'] as string);
-  const currentRoute = url.searchParams.get('route') || undefined;
-  const currentAssetId = url.searchParams.get('assetId') || undefined;
+  try {
+    const url = new URL(req.url || '', `http://${req.headers.host || 'localhost'}`);
+    const token = url.searchParams.get('token') || (req.headers['authorization'] as string) || (req.headers['sec-websocket-protocol'] as string);
+    const currentRoute = url.searchParams.get('route') || undefined;
+    const currentAssetId = url.searchParams.get('assetId') || undefined;
 
-  let session = await getUserByToken(token);
+    let session = await getUserByToken(token);
 
-  if (!session) {
-    // If running in development and no token, fallback to the primary household in DB
-    const firstUser = await prisma.user.findFirst({
-      include: {
-        households: {
-          include: { household: true },
+    if (!session) {
+      // If running in development and no token, fallback to the primary household in DB
+      const firstUser = await prisma.user.findFirst({
+        include: {
+          households: {
+            include: { household: true },
+          },
         },
-      },
-    });
+      });
 
-    if (firstUser && firstUser.households[0]?.household) {
-      session = {
-        user: {
-          id: firstUser.id,
-          fullName: firstUser.fullName,
-          email: firstUser.email || '',
-          phone: firstUser.phone || '',
-          householdId: firstUser.households[0].household.id,
-          role: 'Owner',
-          createdAt: firstUser.createdAt.toISOString(),
-        },
-        household: {
-          id: firstUser.households[0].household.id,
-          name: firstUser.households[0].household.name,
-          plan: 'Family Pro',
-          ownerId: firstUser.id,
-          createdAt: firstUser.households[0].household.createdAt.toISOString().split('T')[0],
-          members: [],
-        },
-      };
+      if (firstUser && firstUser.households[0]?.household) {
+        session = {
+          user: {
+            id: firstUser.id,
+            fullName: firstUser.fullName,
+            email: firstUser.email || '',
+            phone: firstUser.phone || '',
+            householdId: firstUser.households[0].household.id,
+            role: 'Owner',
+            createdAt: firstUser.createdAt.toISOString(),
+          },
+          household: {
+            id: firstUser.households[0].household.id,
+            name: firstUser.households[0].household.name,
+            plan: 'Family Pro',
+            ownerId: firstUser.id,
+            createdAt: firstUser.households[0].household.createdAt.toISOString().split('T')[0],
+            members: [],
+          },
+        };
+      }
     }
-  }
 
-  if (!session) {
-    logger.warn('Unauthorized WebSocket voice assistant connection rejected', {}, 'VoiceWebSocket');
-    ws.send(JSON.stringify({ type: 'error', error: 'Unauthorized: Authentication required.' }));
-    ws.close(4401, 'Unauthorized');
-    return;
-  }
+    if (!session) {
+      logger.warn('Unauthorized WebSocket voice assistant connection rejected', {}, 'VoiceWebSocket');
+      ws.send(JSON.stringify({ type: 'error', error: 'Unauthorized: Authentication required.' }));
+      ws.close(4401, 'Unauthorized');
+      return;
+    }
 
-  logger.info(`Realtime Voice Assistant WebSocket connected for user "${session.user.fullName}" (${session.household.name})`, {
-    userId: session.user.id,
-    householdId: session.household.id,
-    currentRoute,
-  }, 'VoiceWebSocket');
-
-  const userGender = url.searchParams.get('gender') || (session.user as any).gender || 'male';
-
-  const liveSession = new GeminiLiveSession({
-    clientWs: ws,
-    ctx: {
+    logger.info(`Realtime Voice Assistant WebSocket connected for user "${session.user.fullName}" (${session.household.name})`, {
       userId: session.user.id,
       householdId: session.household.id,
-      userName: session.user.fullName,
-      userGender,
-      householdName: session.household.name,
-    },
-    currentRoute,
-    currentAssetId,
-  });
+      currentRoute,
+    }, 'VoiceWebSocket');
 
-  liveSession.start();
+    const userGender = url.searchParams.get('gender') || (session.user as any).gender || 'male';
+
+    const liveSession = new GeminiLiveSession({
+      clientWs: ws,
+      ctx: {
+        userId: session.user.id,
+        householdId: session.household.id,
+        userName: session.user.fullName,
+        userGender,
+        householdName: session.household.name,
+      },
+      currentRoute,
+      currentAssetId,
+    });
+
+    await liveSession.start();
+  } catch (err: any) {
+    logger.error('Error handling WebSocket connection', err, {}, 'VoiceWebSocket');
+    try {
+      ws.send(JSON.stringify({ type: 'error', error: err.message || 'Server WebSocket initialization failed' }));
+      ws.close(1011, 'Internal Server Error');
+    } catch {
+      // socket might already be closed
+    }
+  }
 });
 
 if (process.env.NODE_ENV !== 'test') {

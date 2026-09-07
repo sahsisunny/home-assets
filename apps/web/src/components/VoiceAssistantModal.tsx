@@ -206,6 +206,33 @@ export function VoiceAssistantModal({
         fontFamily: "'Plus Jakarta Sans', sans-serif",
       }}
     >
+      <style>{`
+        @keyframes nehaVoiceAura {
+          0% { transform: scale(0.94); opacity: 0.85; }
+          50% { transform: scale(1.18); opacity: 0.35; }
+          100% { transform: scale(1.38); opacity: 0; }
+        }
+        @keyframes nehaVoiceAura2 {
+          0% { transform: scale(0.90); opacity: 0.75; }
+          50% { transform: scale(1.12); opacity: 0.3; }
+          100% { transform: scale(1.28); opacity: 0; }
+        }
+        @keyframes nehaTalkingBob {
+          0% { transform: scale(1.02) translateY(0px); }
+          50% { transform: scale(1.055) translateY(-4px); }
+          100% { transform: scale(1.03) translateY(-1px); }
+        }
+        @keyframes nehaListeningPulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.025); }
+          100% { transform: scale(1); }
+        }
+        @keyframes nehaThinkingFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-4px); }
+        }
+      `}</style>
+
       {/* ========================================================================= */}
       {/* TOP HEADER: Clean, Crisp White & Minimalist with Segmented Mode Switcher */}
       {/* ========================================================================= */}
@@ -539,20 +566,43 @@ export function VoiceAssistantModal({
                 justifyContent: 'center',
               }}
             >
-              {/* Animated Sound Glow Waves when Speaking */}
+              {/* Multi-Layer Animated 3D Sound Hologram Waves when Speaking */}
               {isSpeaking && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: '-14px',
-                    borderRadius: '50%',
-                    border: '2px solid rgba(139, 92, 246, 0.4)',
-                    animation: 'ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite',
-                  }}
-                />
+                <>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: '-14px',
+                      borderRadius: '50%',
+                      border: '2px solid rgba(139, 92, 246, 0.45)',
+                      animation: 'nehaVoiceAura 1.8s ease-out infinite',
+                      pointerEvents: 'none',
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: '-26px',
+                      borderRadius: '50%',
+                      border: '1.5px solid rgba(167, 139, 250, 0.35)',
+                      animation: 'nehaVoiceAura2 1.8s ease-out infinite 0.6s',
+                      pointerEvents: 'none',
+                    }}
+                  />
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: '-38px',
+                      borderRadius: '50%',
+                      border: '1px solid rgba(196, 181, 253, 0.2)',
+                      animation: 'nehaVoiceAura 1.8s ease-out infinite 1.2s',
+                      pointerEvents: 'none',
+                    }}
+                  />
+                </>
               )}
 
-              {/* Avatar Frame */}
+              {/* Avatar Frame with Dynamic Talking / Listening State Animation */}
               <div
                 style={{
                   width: '140px',
@@ -564,19 +614,31 @@ export function VoiceAssistantModal({
                     ? '4px solid #8B5CF6'
                     : status === 'thinking'
                     ? '3px solid #F59E0B'
-                    : isCallActive
+                    : inputVolume > 0.08
                     ? '3px solid #10B981'
+                    : isCallActive
+                    ? '3px solid #6366F1'
                     : '3px solid #E2E8F0',
                   boxShadow: isSpeaking
-                    ? '0 0 0 8px rgba(139, 92, 246, 0.2), 0 12px 32px rgba(139, 92, 246, 0.35)'
+                    ? '0 0 0 8px rgba(139, 92, 246, 0.22), 0 16px 40px rgba(139, 92, 246, 0.4)'
+                    : status === 'thinking'
+                    ? '0 0 0 6px rgba(245, 158, 11, 0.2), 0 10px 25px rgba(245, 158, 11, 0.2)'
+                    : inputVolume > 0.08
+                    ? '0 0 0 6px rgba(16, 185, 129, 0.25), 0 10px 25px rgba(16, 185, 129, 0.2)'
                     : '0 10px 25px rgba(0, 0, 0, 0.08)',
-                  transform: isSpeaking ? 'scale(1.03)' : 'scale(1)',
-                  transition: 'all 0.25s ease-in-out',
+                  animation: isSpeaking
+                    ? 'nehaTalkingBob 0.65s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite alternate'
+                    : status === 'thinking'
+                    ? 'nehaThinkingFloat 1.8s ease-in-out infinite'
+                    : inputVolume > 0.08
+                    ? 'nehaListeningPulse 1.2s ease-in-out infinite'
+                    : 'none',
+                  transition: 'border 0.25s, box-shadow 0.25s',
                 }}
               >
                 <img
                   src="/neha-avatar.jpg"
-                  alt="Neha AI Concierge"
+                  alt="Neha 3D AI Concierge"
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               </div>

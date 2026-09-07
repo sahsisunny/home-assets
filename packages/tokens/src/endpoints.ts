@@ -122,6 +122,15 @@ export const API_ENDPOINTS = {
   SEARCH: {
     QUERY: (query: string) => `/search?q=${encodeURIComponent(query)}`,
   },
+
+  // Voice Assistant
+  VOICE: {
+    CHAT: '/voice/chat',
+    TOOLS: '/voice/tools',
+    STATUS: '/voice/status',
+    RECOMMENDATIONS: '/voice/recommendations',
+    WS: '/voice/ws',
+  },
 } as const;
 
 /**

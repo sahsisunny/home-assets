@@ -22,6 +22,7 @@ import { AddReminderModal } from '../components/AddReminderModal';
 import { ViewReminderModal } from '../components/ViewReminderModal';
 import { EditReminderModal } from '../components/EditReminderModal';
 import { InviteMemberModal } from '../components/InviteMemberModal';
+import { VoiceAssistantModal, FloatingVoiceButton } from '../components/VoiceAssistantModal';
 
 import {
   Home,
@@ -85,6 +86,7 @@ export default function WebDashboardPage() {
   const [editReminder, setEditReminder] = useState<any | null>(null);
 
   const [isInviteMemberOpen, setIsInviteMemberOpen] = useState(false);
+  const [isVoiceAssistantOpen, setIsVoiceAssistantOpen] = useState(false);
 
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -2472,6 +2474,23 @@ export default function WebDashboardPage() {
           showToast('Reminder updated successfully!');
         }}
         assets={assetOptions}
+      />
+
+      {/* Realtime AI Voice Assistant Trigger & Modal */}
+      {!isVoiceAssistantOpen && (
+        <FloatingVoiceButton
+          onClick={() => setIsVoiceAssistantOpen(true)}
+        />
+      )}
+
+      <VoiceAssistantModal
+        isOpen={isVoiceAssistantOpen}
+        onClose={() => setIsVoiceAssistantOpen(false)}
+        currentRoute={`/${activeTab}`}
+        currentAssetId={viewAssetId || undefined}
+        onAssetModified={() => {
+          loadData();
+        }}
       />
     </div>
   );

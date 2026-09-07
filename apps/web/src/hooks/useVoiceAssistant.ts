@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { buildApiUrl, API_ENDPOINTS } from '@home-assets/tokens';
+import { buildApiUrl, getApiBaseUrl, API_ENDPOINTS } from '@home-assets/tokens';
 
 export type VoiceAssistantState =
   | 'disconnected'
@@ -424,17 +424,32 @@ export function useVoiceAssistant(options: UseVoiceAssistantOptions = {}) {
         }
       }
 
-      // 4. Setup WebSocket URL
-      const host = window.location.hostname || 'localhost';
-      const port = '4005';
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      // 4. Setup Dynamic WebSocket URL (supports Localhost, Vercel, Render, etc.)
       const params = new URLSearchParams();
       if (token) params.append('token', token);
       if (optionsRef.current.currentRoute) params.append('route', optionsRef.current.currentRoute);
       if (optionsRef.current.currentAssetId) params.append('assetId', optionsRef.current.currentAssetId);
       if (optionsRef.current.userGender) params.append('gender', optionsRef.current.userGender);
 
-      const wsUrl = `${protocol}//${host}:${port}/api/voice/ws?${params.toString()}`;
+      let wsEndpoint = '';
+      const customWsUrl = process.env.NEXT_PUBLIC_WS_URL;
+      if (customWsUrl) {
+        const cleanWs = customWsUrl.replace(/\/+$/, '');
+        wsEndpoint = cleanWs.endsWith('/api/voice/ws') ? cleanWs : `${cleanWs}/api/voice/ws`;
+      } else {
+        const apiBase = getApiBaseUrl(); // e.g. "https://home-assets-api.onrender.com/api" or "http://localhost:4005/api"
+        try {
+          const parsed = new URL(apiBase);
+          const wsProtocol = parsed.protocol === 'https:' ? 'wss:' : 'ws:';
+          wsEndpoint = `${wsProtocol}//${parsed.host}/api/voice/ws`;
+        } catch {
+          const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+          const host = window.location.hostname || 'localhost';
+          wsEndpoint = `${protocol}//${host}:4005/api/voice/ws`;
+        }
+      }
+
+      const wsUrl = `${wsEndpoint}?${params.toString()}`;
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
@@ -581,7 +596,7 @@ export function useVoiceAssistant(options: UseVoiceAssistantOptions = {}) {
 
       ws.onerror = (err) => {
         console.error('Voice Assistant WebSocket connection failed:', err);
-        setError('Connection failed. Verify server is running on port 4005.');
+        setError('Voice connection failed. Please check network connection and try again.');
         setStatus('error');
       };
 
